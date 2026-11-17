@@ -1,0 +1,210 @@
+# Instagram
+https://www.instagram.com/abadansweden/
+https://www.instagram.com/askfumea/
+https://www.instagram.com/atisheventsx/
+https://www.instagram.com/byhouseofrumi/
+https://www.instagram.com/club_ofelia/
+https://www.instagram.com/dj.jiyar/
+https://www.instagram.com/dj__alex_bnd/
+https://www.instagram.com/dj_ciya_afsar/
+https://www.instagram.com/djay_ash/
+https://www.instagram.com/djhamid78/
+https://www.instagram.com/djjalireza/
+https://www.instagram.com/djlazo_official/
+https://www.instagram.com/foreningyaran/
+https://www.instagram.com/globalsounds.se/
+https://www.instagram.com/hamlet.events/
+https://www.instagram.com/hevikurdishnetwork/
+https://www.instagram.com/hunar_m_amin/
+https://www.instagram.com/kezi.event_stockholm/
+https://www.instagram.com/kolbe.15.fa/
+https://www.instagram.com/kuflkpg/
+https://www.instagram.com/kuforebro/
+https://www.instagram.com/kufsthlm/
+https://www.instagram.com/parsievents/
+https://www.instagram.com/persian.bookcircle.stockholm/
+https://www.instagram.com/pik_events/
+https://www.instagram.com/robinkadir/
+https://www.instagram.com/third_place.se/
+https://www.instagram.com/yaran_band1/
+https://www.instagram.com/youarevirgo/
+https://www.instagram.com/zerin.events/
+
+# Facebook Pages only, NOT groups
+# (none yet - add page URLs here, one per line)
+
+# Websites
+https://www.javantik.com/events
+https://volek.events/
+https://www.kurdish.events/
+https://globalsounds.se/
+https://www.discotehran.se/
+
+# Existing events - for dedup
+# Title | Date YYYY-MM-DD | City
+Monir Shahroudy Farmanfarmaian – exhibition | 2026-11-01 | Stockholm
+Kayhan Kalhor – Voices of Eternity | 2026-11-20 | Stockholm
+Sijal & Heliyom live in Hamburg | 2026-11-20 | Hamburg
+Afghan Persian Night Party | 2026-11-21 | Göteborg
+Kayhan Kalhor – Voices of Eternity | 2026-11-21 | Göteborg
+BlaBlaMatch Launch Party | 2026-11-21 | Köln
+Sijal & Heliyom live in Cologne | 2026-11-21 | Köln
+Ladies Night Party in Wiesbaden (Frankfurt) | 2026-11-21 | Frankfurt
+Shadmehr Live | 2026-11-21 | Paris
+Shadmehr Live in Paris | 2026-11-21 | Paris
+Ladies Night Party | 2026-11-21 | Wiesbaden (Frankfurt)
+Sohrab Pournazeri & Sahar Mohammadi | 2026-11-26 | Stockholm
+Targol Khalighi | 2026-11-26 | Stockholm
+Moein – live | 2026-11-27 | Düsseldorf
+Sijal & Heliyom – live | 2026-11-27 | München
+Persian Afro House | 2026-11-27 | Stockholm
+Ladies Night Party | 2026-11-27 | Solna
+Tjej party | 2026-11-27 | Karlstad
+Royal Persian Night in London | 2026-11-27 | London
+VELVET Black & White Party in London | 2026-11-27 | London
+»Khayyam« – Javid Afsari Rad Ensemble with Samin Ghorbani & Behnam Samani | 2026-11-28 | Frankfurt am Main
+Rastak – live | 2026-11-28 | Mainz
+Sijal & Heliyom – live | 2026-11-28 | Berlin
+Kayhan Kalhor & Ensemble – live | 2026-11-28 | Copenhagen
+Afghan Night Party | 2026-11-28 | Saltsjöbaden
+Club 88 – Dinner, Drinks & Dance with DJ Ash | 2026-11-28 | Stockholm
+Darya Dadvar | 2026-11-28 | Stockholm
+Mikaîl Aslan – live | 2026-11-28 | Stockholm
+Persisk Party | 2026-11-28 | Örebro
+Black & White Night | 2026-11-28 | Berlin
+Max Amini live in Tirana | 2026-11-28 | Tirana
+Sasy Live | 2026-11-29 | Stockholm
+Author talk – Sedighe Sissi Assadi (Min Gabriella) | 2026-11-29 | Karlstad
+Max Amini live in Tirana | 2026-11-29 | Tirana
+Persian Book Circle #32 – «The Remains of the Day» review & author talk with Rana Soleimani | 2026-12-01 | Solna
+Faride Eftekhari & Dawood Farahi – live | 2026-12-05 | München
+Majid Razavi – live | 2026-12-05 | London
+Farhad Darya – live | 2026-12-05 | Den Haag
+PÎROZ by Robin Kadir – Kurdish Night | 2026-12-05 | Göteborg
+Edris Sejadi & Wali Parwani Live | 2026-12-05 | Göteborg
+Persian Ladies Night Party | 2026-12-05 | London
+Dilan Top & Erkan Top | 2026-12-06 | London
+Majid Razavi – live | 2026-12-06 | Manchester
+Bursiyeh Movie in Köln | 2026-12-06 | Köln
+Bursiyeh Movie in Hamburg | 2026-12-06 | Hamburg
+Dawood Sarkhosh – live | 2026-12-11 | Hanau
+Dawood Sarkhosh – live | 2026-12-12 | Burgdorf
+Passing and Departing – Solo Santur by Babak Moshiri | 2026-12-12 | Stockholm
+Kurdisk Fest – guest DJ Lazo | 2026-12-12 | Örebro
+Yalda Night Party | 2026-12-12 | Lund
+Ebi live on stage in Frankfurt am Main | 2026-12-12 | Frankfurt
+Bursiyeh Movie in Amsterdam | 2026-12-13 | Amsterdam
+Bursiyeh Movie in Berlin | 2026-12-13 | Berlin
+Bursiyeh Movie in Bremen | 2026-12-13 | Bremen
+Bursiyeh Movie in Düsseldorf | 2026-12-13 | Düsseldorf
+Bursiyeh Movie in Hannover | 2026-12-13 | Hannover
+Bursiyeh Movie in München | 2026-12-13 | München
+Bursiyeh Movie in Wien | 2026-12-13 | Wien
+Shab-e Yalda – live music & dance with Nahid | 2026-12-17 | Aarhus
+Radio Javan Party in Manchester | 2026-12-17 | Manchester
+Farhad Darya – live | 2026-12-18 | Helsinki
+Sandy – Yalda Concert | 2026-12-18 | London
+Roja Ala Kurdistanê – Kurdish Flag Day with DJ Jiyar | 2026-12-18 | Handen
+Sasy Live in Belgium | 2026-12-18 | Aartselaar
+Radio Javan Party in London | 2026-12-18 | London
+Ramin Tajangi Live in Manchester | 2026-12-18 | Manchester
+Ali Zand Vakili – live | 2026-12-19 | London
+Sandy – live | 2026-12-19 | Almere
+Dawood Sarkhosh – live | 2026-12-19 | Malmö
+Yalda Night – Alex Alidad x Armin | 2026-12-19 | Göteborg
+Shab-e Yalda – DJ Alireza | 2026-12-19 | Kalmar
+Shadmehr Live in Berlin | 2026-12-19 | Berlin
+Tehran House in Berlin | 2026-12-19 | Berlin
+Yalda Night Party in Brussels | 2026-12-19 | Brussels
+Shahram Shabpareh | 2026-12-19 | Köln
+EBI Live in Copenhagen | 2026-12-19 | Copenhagen
+Baran Live in Frankfurt | 2026-12-19 | Frankfurt
+Yalda Night in Wiesbaden (Frankfurt) | 2026-12-19 | Frankfurt
+Omid, Sasy & Jamshid | 2026-12-19 | Hamburg
+Christmas Party with Xband in London | 2026-12-19 | London
+Faraj Alipour Live in London | 2026-12-19 | London
+Yalda Night Celebration | 2026-12-19 | London
+Persian Yalda Celebration in Stuttgart | 2026-12-19 | Stuttgart
+Yalda Night Party in Copenhagen | 2026-12-19 | Frederiksberg
+Afghan Persian Yalda Night Party in Stockholm | 2026-12-19 | Saltsjöbaden
+Yalda Night in Uppsala | 2026-12-19 | Uppsala
+Yalda Night Party in Stockholm | 2026-12-19 | Stockholm
+Shab-e Yalda family celebration | 2026-12-20 | Kista
+Radio Javan Party (Yalda Party) | 2026-12-20 | Amsterdam
+Sandy Live in in Belgium | 2026-12-20 | Anderlecht
+Yalda Night Gala in Hannover | 2026-12-20 | Hannover
+Shahram Shabpareh Live in London | 2026-12-20 | London
+Faraj Alipour Live in Manchester | 2026-12-20 | Manchester
+Farhad Darya Live in Oslo | 2026-12-20 | Oslo
+Ramin Tajangi Live in London | 2026-12-20 | London
+Sandy Live in Birmingham | 2026-12-21 | Birmingham
+Yalda Night in Hamburg | 2026-12-21 | Hamburg
+Yalda Night with DJ Milad | 2026-12-21 | Leeuwarden
+The Biggest Yalda Celebration in North UK | 2026-12-21 | Liverpool
+Yalda Night Party in London | 2026-12-21 | Harrow
+Sandy Live in Hamburg | 2026-12-23 | Hamburg
+Radio Javan Party | 2026-12-23 | Torino
+X-MAS Persian Party | 2026-12-24 | Zaandijk
+Jashne Khanevadegi | 2026-12-24 | Düsseldorf
+Tehran House in Düsseldorf | 2026-12-24 | Düsseldorf
+Sandy Live in Hannover | 2026-12-24 | Hannover
+Persian X-Mas Party in Münster | 2026-12-24 | Münster
+Radio Javan Party | 2026-12-24 | Paris
+Kurdish Party in Stuttgart | 2026-12-24 | Stuttgart
+Najmadin Ghulami, Shanaz Zahir & Sangar Kamal – Oslo | 2026-12-25 | Oslo
+Familj Yalda Night | 2026-12-25 | Mölndal
+Christmas Party with DJ Fere in Köln | 2026-12-25 | Köln
+Isam live in Düsseldorf | 2026-12-25 | Düsseldorf
+Afghan Family Party with Jawid Sharif Live in Frankfurt | 2026-12-25 | Frankfurt
+Radio Javan Party | 2026-12-25 | Frankfurt
+Persian Christmas Family Party | 2026-12-25 | Mainz
+Sadriddin & Hadis Rustami Live in München | 2026-12-25 | München
+XMas Party with Sherry in Paris | 2026-12-25 | Paris
+Sandy Live in Stuttgart | 2026-12-25 | Stuttgart
+Tohi Live in Vienna | 2026-12-25 | Wien
+Kurdish Party in Köln | 2026-12-25 | Bergisch Gladbach
+Dawood Sarkhosh – live | 2026-12-26 | Stockholm
+Homecoming Night – Robin Kadir | 2026-12-26 | Stockholm
+Radio Javan Party | 2026-12-26 | Berlin
+Kurdish Party in Köln | 2026-12-26 | Köln
+Farhad Darya Live in Frankfurt | 2026-12-26 | Frankfurt
+Leito & Isam Concert + Aftershow Party | 2026-12-26 | Frankfurt
+Shahram Shabpareh live in Hannover | 2026-12-26 | Hannover
+Valy Live in Concert | 2026-12-26 | Paris
+EBI Live in München | 2026-12-26 | München
+Nostalgia Festsugen in Berlin | 2026-12-26 | Berlin
+Weihnachten Party in Wiesbaden (Frankfurt) | 2026-12-26 | Wiesbaden
+The Biggest Persian After Party | 2026-12-27 | Amsterdam
+Shadmehr – live | 2026-12-27 | Amsterdam
+Kurdish Party | 2026-12-27 | München
+Romi Harki, Haval Ibrahim & Islam Zaxoyi – DJ Lazo | 2026-12-29 | Herne
+EBI – live | 2026-12-30 | London
+Copenhagen New Year – Hamid Osman, Aziz Waysi, Nechir Hawramy, Hama Rasuli & DJ Lazo | 2026-12-31 | Skovlunde (Copenhagen)
+Saeed Mohammadi – live, with DJ Saigon Spiller | 2026-12-31 | Oslo
+New Year's Eve – DJ Crush, Nader (neyanban) & Hesam (guitar) | 2026-12-31 | Kista
+Samir Rohesh Live in Frankfurt | 2026-12-31 | Frankfurt
+Silvester Night Party in Frankfurt | 2026-12-31 | Frankfurt
+Radio Javan persian New Year's Eve party | 2026-12-31 | Giessen
+Sadriddin & Hadis Rustami Live in Hamburg | 2026-12-31 | Hamburg
+Tohi live in Hamburg | 2026-12-31 | Hamburg
+Radio Javan Party | 2026-12-31 | München
+New Year’s Eve in Belgium | 2026-12-31 | Haaltert
+Sadriddin & Hadis Rustami – live | 2027-01-02 | unknown
+Dawood Sarkhosh Live in Bonn | 2027-01-02 | Bonn
+Sadriddin & Hadis Rustami – live | 2027-01-09 | Stockholm
+Dawood Sarkhosh Live in Vienna | 2027-01-09 | Wien
+Sadriddin & Hadis Rustami Live in Berlin | 2027-01-16 | Berlin
+Dawood Sarkhosh Live in Oslo | 2027-01-16 | Oslo
+Dawood Sarkhosh Live in Berlin | 2027-01-22 | Berlin
+Masih & Arash – live | 2027-01-23 | London
+Sadriddin & Hadis Rustami Live in Hanau (Frankfurt) | 2027-01-23 | Frankfurt
+Masih & Arash – live | 2027-01-25 | Manchester
+Kurdistan meets Upper Austria | 2027-02-16 | Linz
+Kamran Hooman & 25 Band – live | 2027-03-06 | Amsterdam
+Kamran & Hooman – live | 2027-03-13 | Stockholm
+Aryana Sayeed Ladies Only Concert in Essen | 2027-03-13 | Essen
+Arash – live | 2027-03-19 | London
+Kamran and Hooman live in Zürich | 2027-03-27 | Zürich
+A Nostalgic Night | 2027-04-03 | Aalsmeer
+Reza Sadeghi Live in London | 2027-09-18 | London
+Reza Sadeghi Live in Manchester | 2027-09-20 | Manchester
