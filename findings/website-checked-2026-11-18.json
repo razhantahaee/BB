@@ -110,5 +110,61 @@
   "ticket_url": "https://posttick.com/c/maxamini2027/2026_12_12_max_amini_luetfi_kirdar_icec_istanbul_1030pm/en/",
   "source_url": "https://www.javantik.com/event/17934435536811",
   "notes": "Date/time taken from ticket URL. Istanbul (Harbiye, European side) – Turkey, borderline Europe."
+ },
+ {
+  "title": "Wajiha Rastagar, Farid Rastagar, Hadja Rastagar Live in Concert",
+  "date": "2026-12-04",
+  "time": "18:30",
+  "city": "Hamburg",
+  "country": "DE",
+  "venue": "unknown",
+  "price": "See ticket page",
+  "type": "persian",
+  "image": "https://volek.events/wp-content/uploads/2026/11/MIT-Band-Live-in-Concert-in-Hamburg-1.jpeg",
+  "ticket_url": "https://volek.events/event/wajiha-rastagarfarid-rastagar-hadja-rastagar-live-in-concert-hamburg/",
+  "source_url": "https://volek.events/event/wajiha-rastagarfarid-rastagar-hadja-rastagar-live-in-concert-hamburg/",
+  "notes": "Venue not in data. Artists are Afghan; type persian is a guess."
+ },
+ {
+  "title": "Kurdish Party in Köln",
+  "date": "2026-12-31",
+  "time": "18:30",
+  "city": "Köln",
+  "country": "DE",
+  "venue": "unknown",
+  "price": "See ticket page",
+  "type": "kurdish",
+  "image": "https://volek.events/wp-content/uploads/2026/11/Kurdish-Party-in-Koln-2.jpeg",
+  "ticket_url": "https://volek.events/event/kurdish-party-in-koln-dec-26/",
+  "source_url": "https://volek.events/event/kurdish-party-in-koln-dec-26/",
+  "notes": "URL says dec-26 but listed date is 2026-12-31. Existing events already have Kurdish Party in Köln on 12-25/12-26. Check date."
+ },
+ {
+  "title": "X-MAS Party in Holland",
+  "date": "unknown",
+  "time": "unknown",
+  "city": "Amsterdam",
+  "country": "NL",
+  "venue": "unknown",
+  "price": "See ticket page",
+  "type": "persian",
+  "image": "unknown",
+  "ticket_url": "https://volek.events/event/x-mas-party-in-holland/",
+  "source_url": "https://www.javantik.com/events",
+  "notes": "Date/venue cut off in candidate text. Existing list has an X-MAS Persian Party 2026-12-24 in Zaandijk - may be the same event."
+ },
+ {
+  "title": "Familj Yalda Night in Göteborg",
+  "date": "unknown",
+  "time": "unknown",
+  "city": "Göteborg",
+  "country": "SE",
+  "venue": "unknown",
+  "price": "See ticket page",
+  "type": "persian",
+  "image": "unknown",
+  "ticket_url": "https://volek.events/event/familj-yalda-night-in-goteborg/",
+  "source_url": "https://www.javantik.com/events",
+  "notes": "Date cut off. Existing list has Familj Yalda Night 2026-12-25 in Mölndal - may be the same event."
  }
 ]
