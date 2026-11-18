@@ -1,0 +1,7 @@
+| Website | Status | Events read | New candidates | Page errors |
+|---|---|---|---|---|
+| volek.events | ok | 0 | 0 | 0 |
+| javantik.com | ok | 71 | 71 | 0 |
+| kurdish.events | COULD NOT READ: HTTP Error 429: Too Many Requests | 0 | 0 | 0 |
+| globalsounds.se | ok | 8 | 8 | 0 |
+| discotehran.se | ok | 0 | 0 | 0 |
