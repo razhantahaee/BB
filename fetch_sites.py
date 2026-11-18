@@ -3,7 +3,7 @@
 Reads volek, javantik, kurdish.events, globalsounds, discotehran and writes
 findings/website-YYYY-MM-DD.json  (candidates)  +  findings/website-YYYY-MM-DD.summary.txt
 The Claude step (prompts/daily.txt) then cleans the candidates."""
-import base64, datetime, html, json, os, re, sys, time, urllib.parse, urllib.request
+import base64, datetime, html, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
 
 TODAY = datetime.date.today().isoformat()
 UA = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
@@ -12,14 +12,18 @@ EUROPE = set("al ad at ba be bg by ch cy cz de dk ee es fi fr gb ge gr hr hu ie 
 
 def get(url, accept="text/html,*/*"):
     last = None
-    for n in range(3):
+    for n in range(4):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": accept, "Accept-Language": "en"})
             with urllib.request.urlopen(req, timeout=30) as r:
                 return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code in (404, 410): raise          # gone: do not retry
+            time.sleep(15 * (n + 1))                # 454/429/403/5xx: wait longer each time
         except Exception as e:
             last = e
-            time.sleep(2 * (n + 1))
+            time.sleep(3 * (n + 1))
     raise last
 
 def getj(url):
@@ -102,6 +106,14 @@ def is_existing(c, keys):
             return True
     return False
 
+def load_known():
+    try:
+        return set(l.strip().rstrip("/") for l in open("known_urls.txt", encoding="utf-8") if l.strip() and not l.startswith("#"))
+    except Exception:
+        return set()
+KNOWN = load_known()
+def known(u): return u.rstrip("/") in KNOWN
+
 # ---------- sites ----------
 def site_volek():
     out, page = [], 1
@@ -114,8 +126,9 @@ def site_volek():
         if not items: break
         urls += [(clean(i["title"]["rendered"]), i["link"]) for i in items]
         page += 1
+    urls = [(t, l) for (t, l) in urls if not known(l)]   # only new events need a page request
     for title, link in urls:
-        time.sleep(DELAY)
+        time.sleep(3)
         c = {"title": title, "url": link, "ticket_url": link, "source": "volek.events"}
         try:
             pg = get(link)
@@ -135,6 +148,7 @@ def site_javantik():
     ids = []
     for m in re.finditer(r'href=["\'](?:https://www\.javantik\.com)?/event/(\d+)', pg):
         if m.group(1) not in ids: ids.append(m.group(1))
+    ids = [i for i in ids if not known("https://www.javantik.com/event/" + i)]
     for i in ids:
         time.sleep(DELAY)
         url = "https://www.javantik.com/event/" + i
@@ -167,7 +181,7 @@ def generic(base, source, link_re):
     for m in re.finditer(link_re, pg):
         u = urllib.parse.urljoin(base, m.group(1))
         if u not in seen: seen.append(u)
-    for u in seen[:60]:
+    for u in [x for x in seen if not known(x)][:60]:
         time.sleep(DELAY)
         c = {"title": "", "url": u, "ticket_url": u, "source": source}
         try:

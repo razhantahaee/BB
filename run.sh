@@ -3,7 +3,7 @@
 export PATH="$HOME/.local/bin:$PATH"
 source ~/.config/bb/env
 cd ~/BB || exit 1
-git pull --rebase -q || exit 1
+git pull --rebase --autostash -q || { echo "$(date -Is) git pull FAILED" >> ~/bb.log; exit 1; }
 echo "$(date -Is) start" >> ~/bb.log
 ~/BB/.venv/bin/python fetch_sites.py >> ~/bb.log 2>&1
 # Instagram step: only runs if the switch file exists (create it with: touch ~/BB/.ig_on)
