@@ -254,12 +254,60 @@ def generic(base, source, link_re):
         out.append(c)
     return out
 
+SV_MONTHS = {"januari":1,"februari":2,"mars":3,"april":4,"maj":5,"juni":6,"juli":7,"augusti":8,"september":9,"oktober":10,"november":11,"december":12,
+             "january":1,"february":2,"march":3,"may":5,"june":6,"july":7,"august":8,"october":10}
+
+def parse_discotehran(pg, base="https://www.discotehran.se/", today=None):
+    """discotehran.se is ONE page (Next.js) with event cards; no per-event URLs.
+    Only cards in the 'Upcoming Parties' block count ('More Nights Coming' = no date, 'Past Parties' = over)."""
+    today = today or datetime.date.today()
+    a = pg.find("Upcoming Parties")
+    if a < 0: return []
+    b = pg.find("Past Parties", a)
+    block = pg[a:b if b > 0 else len(pg)]
+    out = []
+    for art in re.findall(r"<article\b.*?</article>", block, re.S):
+        if "event-soon-card" in art or "event-card-past" in art: continue      # no date yet / already over
+        h = re.search(r"<h4[^>]*>(.*?)</h4>", art, re.S)
+        if not h: continue
+        title = clean(h.group(1))
+        dm = re.search(r'<span[^>]*>(\d{1,2})</span>\s*<span[^>]*>([^<]+)</span>', art)
+        date = ""
+        if dm and dm.group(2).strip().lower() in SV_MONTHS:
+            day, mon = int(dm.group(1)), SV_MONTHS[dm.group(2).strip().lower()]
+            for y in (today.year, today.year + 1):          # the card shows no year: take the next such date
+                try:
+                    d = datetime.date(y, mon, day)
+                except ValueError:
+                    continue
+                if d >= today: date = d.isoformat(); break
+        def line(emoji):
+            m = re.search(r"<p[^>]*>\s*%s\s*(?:<!-- -->)?\s*(.*?)</p>" % emoji, art, re.S)
+            return clean(m.group(1)) if m else ""
+        tm = re.search(r"(\d{1,2}:\d{2})", line("⏰"))
+        place = line("📍")
+        parts = [x.strip() for x in place.split(",")]
+        img = re.search(r'<img[^>]+src="([^"]+)"', art)
+        im = ""
+        if img:
+            q = urllib.parse.parse_qs(urllib.parse.urlparse(html.unescape(img.group(1))).query)
+            im = (q.get("url") or [""])[0] or urllib.parse.urljoin(base, html.unescape(img.group(1)))
+        out.append({"title": title, "url": base + "#" + norm(title), "ticket_url": base, "source": "discotehran.se",
+                    "date": date, "time": tm.group(1) if tm else "", "venue": parts[0] if parts else "",
+                    "address": ", ".join(parts[1:]), "city": parts[-1] if len(parts) > 1 else "", "country": "SE",
+                    "price": line("🎟️"), "lineup": line("🎧"), "image": im,
+                    "page_text": clean(art)[:800]})
+    return out
+
+def site_discotehran():
+    return [c for c in parse_discotehran(get("https://www.discotehran.se/")) if not known(c["url"])]
+
 SITES = [
     ("volek.events", site_volek),
     ("javantik.com", site_javantik),
     ("kurdish.events", lambda: generic("https://www.kurdish.events/", "kurdish.events", r'href=["\']((?:https://www\.kurdish\.events)?/events/[^"\'#?]+)')),
     ("globalsounds.se", lambda: generic("https://globalsounds.se/", "globalsounds.se", r'href=["\']((?:https://globalsounds\.se)?/program/[^"\'#?]+)')),
-    ("discotehran.se", lambda: generic("https://www.discotehran.se/", "discotehran.se", r'href=["\']((?:https://www\.discotehran\.se)?/[^"\'#?]*(?:event|konsert|biljett|ticket)[^"\'#?]*)')),
+    ("discotehran.se", site_discotehran),
 ]
 
 def main():

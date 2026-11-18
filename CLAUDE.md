@@ -27,5 +27,6 @@ A human (Hosein) approves every event before it goes on the website. Never add e
 
 ## Known issues
 - volek.events blocks plain scripts (HTTP 454); the browser fallback works. Some volek events are private ("access code") - skipped.
-- kurdish.events returned 429; discotehran.se returned 0 events (parser may need fixing - look at its HTML).
+- kurdish.events is behind a Vercel "Security Checkpoint" (HTTP 429), also for headless Firefox. Do not try to bypass it; skip the site until the owners give an API/feed/allowlist.
+- discotehran.se is ONE page with event cards (no per-event URLs). site_discotehran()/parse_discotehran() read only the "Upcoming Parties" block; 0 events is normal when it only shows "Soon" placeholders. Card has no year (next matching date is used) and the ticket link is the home page.
 - Instagram can ask for a login/security check: stop immediately and tell the user.

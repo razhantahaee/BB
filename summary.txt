@@ -1,7 +1,7 @@
 fetch_sites.py: kurdish.events and discotehran.se (2026-11-18)
 
 RESULT
-- discotehran.se: parser fixed (change is in fetch_sites.py in the working tree, NOT committed yet).
+- discotehran.se: parser fixed (change is in fetch_sites.py).
 - kurdish.events: NOT fixed. Blocked by a bot check.
 
 DISCOTEHRAN.SE
@@ -29,5 +29,5 @@ KURDISH.EVENTS
 - The daily run will keep showing it as blocked.
 
 NOTES
-- CLAUDE.md "Known issues" not updated.
-- Only this file is pushed; fetch_sites.py changes are still uncommitted.
+- CLAUDE.md "Known issues" updated for both sites.
+- fetch_sites.py and CLAUDE.md committed and pushed together with this file.
