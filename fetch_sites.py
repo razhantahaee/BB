@@ -3,14 +3,45 @@
 Reads volek, javantik, kurdish.events, globalsounds, discotehran and writes
 findings/website-YYYY-MM-DD.json  (candidates)  +  findings/website-YYYY-MM-DD.summary.txt
 The Claude step (prompts/daily.txt) then cleans the candidates."""
-import base64, datetime, html, json, os, re, sys, time, urllib.error, urllib.parse, urllib.request
+import base64, datetime, html, json, os, random, re, sys, time, urllib.error, urllib.parse, urllib.request
 
 TODAY = datetime.date.today().isoformat()
 UA = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
 DELAY = 1.0
 EUROPE = set("al ad at ba be bg by ch cy cz de dk ee es fi fr gb ge gr hr hu ie is it li lt lu lv mc md me mk mt nl no pl pt ro rs se si sk sm ua va xk".split())
 
+_PW = {}
+def bget(url):
+    """Fetch with a real headless Firefox (used when a site refuses plain requests)."""
+    from playwright.sync_api import sync_playwright
+    if "b" not in _PW:
+        _PW["p"] = sync_playwright().start()
+        _PW["b"] = _PW["p"].firefox.launch(headless=True)
+        _PW["pg"] = _PW["b"].new_page(locale="en-US")
+    pg = _PW["pg"]
+    r = pg.goto(url, timeout=60000, wait_until="domcontentloaded")
+    if r is not None and r.status >= 400:
+        raise urllib.error.HTTPError(url, r.status, "browser", None, None)
+    pg.wait_for_timeout(2500)
+    return pg.content()
+
+def bclose():
+    try:
+        if "b" in _PW: _PW["b"].close(); _PW["p"].stop()
+    except Exception:
+        pass
+
 def get(url, accept="text/html,*/*"):
+    if url in BROWSER_ONLY_HOSTS_SEEN_BLOCKED(url):
+        return bget(url)
+    return _get(url, accept)
+
+BLOCKED_HOSTS = set()
+def BROWSER_ONLY_HOSTS_SEEN_BLOCKED(url):
+    h = urllib.parse.urlparse(url).netloc
+    return [url] if h in BLOCKED_HOSTS else []
+
+def _get(url, accept="text/html,*/*"):
     last = None
     for n in range(2):
         try:
@@ -20,7 +51,11 @@ def get(url, accept="text/html,*/*"):
         except urllib.error.HTTPError as e:
             last = e
             if e.code in (404, 410): raise          # gone: do not retry
-            time.sleep(10 * (n + 1))                # 454/429/403/5xx: short wait, then give up
+            if e.code in (454, 429, 403) and "text/html" in accept:
+                BLOCKED_HOSTS.add(urllib.parse.urlparse(url).netloc)   # from now on use the real browser for this site
+                log("blocked (%s) -> using browser for %s" % (e.code, urllib.parse.urlparse(url).netloc))
+                return bget(url)
+            time.sleep(10 * (n + 1))
         except Exception as e:
             last = e
             time.sleep(3 * (n + 1))
@@ -119,6 +154,7 @@ def load_known():
     return out
 KNOWN = load_known()
 SEEN_SKIP = set()
+EXTRA_SEEN = []
 def known(u): return u.rstrip("/") in KNOWN
 
 # ---------- sites ----------
@@ -137,13 +173,15 @@ def site_volek():
     log("volek: %d new events to read" % len(urls))
     fails, t0 = 0, time.time()
     for idx, (title, link) in enumerate(urls):
-        if fails >= 3 or time.time() - t0 > 360:
+        if fails >= 3 or time.time() - t0 > 900:
             log("volek: stopping early (blocked or too slow); rest will be tried tomorrow"); break
-        time.sleep(3)
+        time.sleep(random.uniform(3, 6))
         log("volek %d/%d %s" % (idx + 1, len(urls), link))
         c = {"title": title, "url": link, "ticket_url": link, "source": "volek.events"}
         try:
             pg = get(link)
+            if "access code to open the event page" in pg:
+                EXTRA_SEEN.append(link); log("  private event (access code) - skipped"); fails = 0; continue
             lds = jsonld_events(pg)
             if lds: c.update({k: v for k, v in from_ld(lds[0]).items() if v})
             c["ticket_url"] = link  # volek sells the ticket itself
@@ -236,6 +274,7 @@ def main():
         try:
             with open("seen_urls.txt", "a", encoding="utf-8") as sf:
                 for c in items: sf.write(c["url"] + "\n")
+                for u in EXTRA_SEEN: sf.write(u + "\n")
         except Exception:
             pass
         for c in items:
@@ -259,4 +298,7 @@ def main():
     print("\n".join(lines))
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        bclose()
