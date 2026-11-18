@@ -5,7 +5,7 @@ Usage:  python ig_check.py            -> test: first 3 pages only
         python ig_check.py --n 5      -> only the first 5 pages (can combine with --all or alone)
         python ig_check.py --first    -> FIRST-TIME read: last 10 posts per page, all kept (file social-instagram-DATE-first.json)
 Daily mode: opens posts newest-first and STOPS as soon as it is clear nothing newer follows
-(3 posts in a row older than yesterday, in falling date order = past any pinned posts). Keeps posts from today/yesterday.
+(pinned posts are max 3 and come first, so a post number 4+ that is older than yesterday means nothing newer follows). Keeps posts from today/yesterday.
 Every step is logged with a time stamp. Results are saved after every page."""
 import datetime, json, os, random, sys, time
 from playwright.sync_api import sync_playwright
@@ -73,12 +73,18 @@ def main():
                     href = a.get_attribute("href") or ""
                     if a.query_selector('svg[aria-label="Pinned"]'): continue
                     full = "https://www.instagram.com" + href.split("?")[0] if href.startswith("/") else href.split("?")[0]
+                    if ("/%s/" % name.lower()) not in full.lower():
+                        continue    # other account (collab/suggested) - not this page's own post
                     if full not in links: links.append(full)
                     if len(links) == MAXLINKS: break
                 log("  found %d post links on profile" % len(links))
                 if not links:
-                    row["status"] = "no posts found"; rows.append(row); log("  no posts found"); save(results); pause(3, 6, "(next page)"); continue
-                posts, old_streak, last_old = [], 0, None
+                    try:
+                        body = (pg.inner_text("body") or "").replace("\n", " ")[:160]
+                        log("  no posts found. url=%s title=%r text=%r" % (pg.url, pg.title()[:60], body))
+                    except Exception: pass
+                    row["status"] = "no posts found"; rows.append(row); save(results); pause(3, 6, "(next page)"); continue
+                posts, seen_recent = [], False
                 for k, l in enumerate(links, 1):
                     pause(2, 4, "(before post %d/%d)" % (k, len(links)))
                     log("  opening post %d/%d %s" % (k, len(links), l))
@@ -88,14 +94,13 @@ def main():
                     og = lambda key: (pg.query_selector('meta[property="%s"]' % key).get_attribute("content") if pg.query_selector('meta[property="%s"]' % key) else "")
                     posts.append({"page": name, "post_url": l, "posted": dt, "caption": og("og:description")[:2500], "image": og("og:image"), "source": "instagram"})
                     log("    posted %s (%s days old)" % (dt or "?", age(dt) if dt else "?"))
-                    if not FIRST:
-                        if age(dt) > 1:
-                            old_streak = old_streak + 1 if (last_old is None or dt <= last_old) else 1
-                            last_old = dt
-                            if old_streak >= 3:
-                                log("  3 old posts in a row -> nothing newer follows, stop this page"); break
-                        else:
-                            old_streak, last_old = 0, None
+                    if not FIRST and dt:
+                        if age(dt) <= 1:
+                            seen_recent = True
+                        elif k >= 4 and not seen_recent:
+                            log("  post %d (after up to 3 pinned) is old -> nothing newer follows, stop this page" % k); break
+                        elif k >= 4 and seen_recent and age(dt) > 1:
+                            log("  post %d is old after a recent one -> stop this page" % k); break
                 posts.sort(key=lambda x: x["posted"], reverse=True)
                 for post in (posts if FIRST else posts[:3]):
                     row["posts"] += 1
