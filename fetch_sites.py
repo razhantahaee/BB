@@ -107,10 +107,13 @@ def is_existing(c, keys):
     return False
 
 def load_known():
-    try:
-        return set(l.strip().rstrip("/") for l in open("known_urls.txt", encoding="utf-8") if l.strip() and not l.startswith("#"))
-    except Exception:
-        return set()
+    out = set()
+    for f in ("known_urls.txt", "seen_urls.txt"):   # known = already on site; seen = already looked at by this script
+        try:
+            out |= set(l.strip().rstrip("/") for l in open(f, encoding="utf-8") if l.strip() and not l.startswith("#"))
+        except Exception:
+            pass
+    return out
 KNOWN = load_known()
 def known(u): return u.rstrip("/") in KNOWN
 
@@ -218,6 +221,11 @@ def main():
             items = fn()
         except Exception as e:
             rows.append((name, "COULD NOT READ: %s" % str(e)[:80], 0, 0)); continue
+        try:
+            with open("seen_urls.txt", "a", encoding="utf-8") as sf:
+                for c in items: sf.write(c["url"] + "\n")
+        except Exception:
+            pass
         for c in items:
             read += 1
             if c.get("error"): err += 1
