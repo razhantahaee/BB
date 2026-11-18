@@ -3,7 +3,7 @@
 Usage:  python ig_check.py            -> test: first 3 pages only
         python ig_check.py --all      -> all pages
 Output: findings/social-instagram-YYYY-MM-DD.json  (candidates, raw: the Claude step cleans them)
-Rules: latest 3 posts per page (pinned posts skipped); skip a page if no post from today/yesterday."""
+Rules: the 3 newest posts per page (reads 6, sorts by date, so pinned posts do not count); skip a page if no post from today/yesterday."""
 import datetime, json, os, random, re, sys, time
 from playwright.sync_api import sync_playwright
 
@@ -46,9 +46,10 @@ def main():
                     if a.query_selector('svg[aria-label="Pinned"]'): continue
                     full = "https://www.instagram.com" + href.split("?")[0] if href.startswith("/") else href.split("?")[0]
                     if full not in links: links.append(full)
-                    if len(links) == 3: break
+                    if len(links) == 6: break
                 if not links:
                     row["status"] = "no posts found"; rows.append(row); continue
+                posts = []
                 for l in links:
                     pause()
                     pg.goto(l, wait_until="domcontentloaded", timeout=45000); pause(2, 4)
@@ -56,7 +57,12 @@ def main():
                     dt = (t.get_attribute("datetime") if t else "")[:10]
                     og = lambda k: (pg.query_selector('meta[property="%s"]' % k).get_attribute("content") if pg.query_selector('meta[property="%s"]' % k) else "")
                     post = {"page": name, "post_url": l, "posted": dt, "caption": og("og:description")[:2500], "image": og("og:image"), "source": "instagram"}
+                    posts.append(post)
+                # pinned posts are old but show first: take the 3 NEWEST of the 6 read
+                posts.sort(key=lambda x: x["posted"], reverse=True)
+                for post in posts[:3]:
                     row["posts"] += 1
+                    dt = post["posted"]
                     if dt and (TODAY - datetime.date.fromisoformat(dt)).days <= 1:
                         row["recent"] += 1; post["recent"] = True
                     else:
