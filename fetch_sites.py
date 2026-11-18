@@ -12,7 +12,7 @@ EUROPE = set("al ad at ba be bg by ch cy cz de dk ee es fi fr gb ge gr hr hu ie 
 
 def get(url, accept="text/html,*/*"):
     last = None
-    for n in range(4):
+    for n in range(2):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": accept, "Accept-Language": "en"})
             with urllib.request.urlopen(req, timeout=30) as r:
@@ -20,11 +20,14 @@ def get(url, accept="text/html,*/*"):
         except urllib.error.HTTPError as e:
             last = e
             if e.code in (404, 410): raise          # gone: do not retry
-            time.sleep(15 * (n + 1))                # 454/429/403/5xx: wait longer each time
+            time.sleep(10 * (n + 1))                # 454/429/403/5xx: short wait, then give up
         except Exception as e:
             last = e
             time.sleep(3 * (n + 1))
     raise last
+
+def log(*a):
+    print(*a, file=sys.stderr, flush=True)
 
 def getj(url):
     return json.loads(get(url, "application/json"))
@@ -115,6 +118,7 @@ def load_known():
             pass
     return out
 KNOWN = load_known()
+SEEN_SKIP = set()
 def known(u): return u.rstrip("/") in KNOWN
 
 # ---------- sites ----------
@@ -130,8 +134,13 @@ def site_volek():
         urls += [(clean(i["title"]["rendered"]), i["link"]) for i in items]
         page += 1
     urls = [(t, l) for (t, l) in urls if not known(l)]   # only new events need a page request
-    for title, link in urls:
+    log("volek: %d new events to read" % len(urls))
+    fails, t0 = 0, time.time()
+    for idx, (title, link) in enumerate(urls):
+        if fails >= 3 or time.time() - t0 > 360:
+            log("volek: stopping early (blocked or too slow); rest will be tried tomorrow"); break
         time.sleep(3)
+        log("volek %d/%d %s" % (idx + 1, len(urls), link))
         c = {"title": title, "url": link, "ticket_url": link, "source": "volek.events"}
         try:
             pg = get(link)
@@ -140,8 +149,11 @@ def site_volek():
             c["ticket_url"] = link  # volek sells the ticket itself
             if not c.get("image"): c["image"] = meta(pg, "og:image")
             c["title"] = c.get("title") or title
+            fails = 0
         except Exception as e:
-            c["error"] = str(e)[:120]
+            c["error"] = str(e)[:120]; fails += 1
+            if fails >= 3: SEEN_SKIP.add(link)
+            continue          # not read: do not remember it, try again tomorrow
         out.append(c)
     return out
 

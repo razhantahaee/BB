@@ -5,7 +5,7 @@ source ~/.config/bb/env
 cd ~/BB || exit 1
 git pull --rebase --autostash -q || { echo "$(date -Is) git pull FAILED" >> ~/bb.log; exit 1; }
 echo "$(date -Is) start" >> ~/bb.log
-~/BB/.venv/bin/python fetch_sites.py >> ~/bb.log 2>&1
+~/BB/.venv/bin/python -u fetch_sites.py >> ~/bb.log 2>&1
 # Instagram step: only runs if the switch file exists (create it with: touch ~/BB/.ig_on)
 if [ -f .ig_on ] && [ -f instagram_state.json ]; then
   ~/BB/.venv/bin/python ig_check.py --all >> ~/bb.log 2>&1 || echo "instagram step failed" >> ~/bb.log
