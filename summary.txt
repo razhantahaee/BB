@@ -1,0 +1,33 @@
+fetch_sites.py: kurdish.events and discotehran.se (2026-11-18)
+
+RESULT
+- discotehran.se: parser fixed (change is in fetch_sites.py in the working tree, NOT committed yet).
+- kurdish.events: NOT fixed. Blocked by a bot check.
+
+DISCOTEHRAN.SE
+Why it found 0 events: the old code looked for links containing event/konsert/biljett/ticket.
+The site is one Next.js page with event cards and no per-event URLs, so nothing matched.
+
+Changes in fetch_sites.py:
+- Added parse_discotehran() and site_discotehran(); replaced the old generic lambda for discotehran in SITES.
+- Reads only cards in the "Upcoming Parties" block. Skips "More Nights Coming" placeholders (no date) and "Past Parties".
+- Fields: title, date, time, venue, address, city, price, lineup, image, card text. Missing = empty.
+- Date: card shows only day + Swedish month, so the parser takes the next such date from today. Year is a guess - check it.
+- Ticket link = home page (site has no per-event ticket page; it mentions Swish).
+- Dedup: each event gets a key like https://www.discotehran.se/#halloweenjashnx so seen_urls.txt can skip it later.
+
+Testing:
+- Live page returns 0 events. Correct today: "Upcoming" is empty, four "Soon" placeholders, only dated event is the past Halloween (31 Oct).
+- Copied the Halloween card into the "Upcoming" block of the saved page: got title, time 21:00, venue Meykadeh, price 199 kr, lineup DJ ASH, image. Year came out 2027 only because that date was already past.
+- city for that card is "Stockholm" while the address says Sundbyberg (last part of the address is used).
+- py_compile passes. Full fetch_sites.py run not done.
+
+KURDISH.EVENTS
+- Site answers with a "Vercel Security Checkpoint" bot-check page, HTTP 429, for plain requests AND headless Firefox. The browser fallback does not help.
+- Getting past it would mean evading bot protection; CLAUDE.md says stop when blocked. Only two requests were made. Parser left unchanged.
+- Options: ask the owners for an API/feed/allowlist, or drop the site and use Instagram.
+- The daily run will keep showing it as blocked.
+
+NOTES
+- CLAUDE.md "Known issues" not updated.
+- Only this file is pushed; fetch_sites.py changes are still uncommitted.
