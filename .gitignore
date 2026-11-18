@@ -1,4 +1,8 @@
 *.pyc
 .venv/
 __pycache__/
+<<<<<<< HEAD
 .ig_on
+=======
+*_state.json
+>>>>>>> c6db2b1 (ignore state files)
