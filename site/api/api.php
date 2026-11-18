@@ -1,0 +1,227 @@
+<?php
+// API ساده‌ی بزن بریم روی MySQL استرato
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store');
+session_start();
+require __DIR__ . '/config.php';
+
+function pdo() {
+  static $p = null;
+  if (!$p) {
+    $p = new PDO('mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4', DB_USER, DB_PASS, [
+      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+    $p->exec("CREATE TABLE IF NOT EXISTS docs (
+      path VARCHAR(255) PRIMARY KEY,
+      coll VARCHAR(64) NOT NULL,
+      data MEDIUMTEXT NOT NULL,
+      updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX (coll)
+    ) CHARACTER SET utf8mb4");
+    $p->exec("CREATE TABLE IF NOT EXISTS meta (k VARCHAR(64) PRIMARY KEY, v TEXT) CHARACTER SET utf8mb4");
+  }
+  return $p;
+}
+
+function out($x) { echo json_encode($x, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); exit; }
+function fail($code, $msg) { http_response_code($code); out(['error' => $msg]); }
+function isAdmin() { return !empty($_SESSION['admin']); }
+
+function adminHash() {
+  $s = pdo()->query("SELECT v FROM meta WHERE k='admin_hash'")->fetchColumn();
+  return $s ?: null;
+}
+
+// توکن خودکار (VPS): در config.php مقدار BB_TOKEN را بگذارید؛ اگر خالی باشد این مسیرها بسته‌اند
+function tokenOk() {
+  $t = $_SERVER['HTTP_X_BB_TOKEN'] ?? '';
+  return defined('BB_TOKEN') && BB_TOKEN !== '' && $t !== '' && hash_equals(BB_TOKEN, $t);
+}
+
+function collOf($path) { return explode('/', $path)[0]; }
+
+function validPath($path) {
+  return is_string($path) && strlen($path) <= 240 && preg_match('#^[A-Za-z0-9_.\-]+(/[A-Za-z0-9_.\-]+)*$#', $path);
+}
+
+// نوشتن: فقط ادمین، جز submissions/{uid} که هر کس برای خودش می‌تواند بنویسد
+function canWrite($path, $uid) {
+  if (isAdmin()) return true;
+  $parts = explode('/', $path);
+  return $parts[0] === 'submissions' && count($parts) === 2 && $uid !== null && $parts[1] === $uid;
+}
+
+// خواندن: رویدادها، گروه‌ها و config عمومی‌اند؛ submissions فقط برای خودش یا ادمین؛ sources فقط ادمین
+function canRead($path, $uid) {
+  if (isAdmin()) return true;
+  $parts = explode('/', $path);
+  $c = $parts[0];
+  if ($c === 'events' || $c === 'communities') return true;
+  if ($c === 'config') return true;
+  if ($c === 'submissions') return count($parts) === 2 && $uid !== null && $parts[1] === $uid;
+  return false;
+}
+
+$op = $_GET['op'] ?? '';
+$raw = file_get_contents('php://input');
+$in = $raw ? (json_decode($raw, true) ?: []) : [];
+$uid = isset($_GET['uid']) ? (string)$_GET['uid'] : (isset($in['uid']) ? (string)$in['uid'] : null);
+if ($uid !== null && !preg_match('/^[A-Za-z0-9_\-]{4,80}$/', $uid)) $uid = null;
+
+switch ($op) {
+
+  case 'whoami':
+    out(['admin' => isAdmin(), 'hasAdmin' => adminHash() !== null]);
+
+  case 'list': {
+    $c = $_GET['c'] ?? '';
+    if (!preg_match('/^[a-z]+$/', $c)) fail(400, 'bad collection');
+    if ($c === 'submissions') {
+      if (isAdmin()) $st = pdo()->prepare("SELECT path, data FROM docs WHERE coll=?");
+      else { if ($uid === null) out(['docs' => []]); $st = pdo()->prepare("SELECT path, data FROM docs WHERE path=?"); $path = 'submissions/' . $uid; }
+      if (isAdmin()) $st->execute([$c]); else $st->execute([$path]);
+    } elseif ($c === 'sources') {
+      if (!isAdmin()) out(['docs' => []]);
+      $st = pdo()->prepare("SELECT path, data FROM docs WHERE coll=?"); $st->execute([$c]);
+    } elseif (in_array($c, ['events', 'communities', 'config'], true)) {
+      $st = pdo()->prepare("SELECT path, data FROM docs WHERE coll=?"); $st->execute([$c]);
+    } else {
+      fail(403, 'not allowed');
+    }
+    $docs = [];
+    foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $docs[] = ['id' => substr($r['path'], strrpos($r['path'], '/') + 1), 'data' => json_decode($r['data'], true) ?: new stdClass()];
+    }
+    out(['docs' => $docs]);
+  }
+
+  case 'get': {
+    $path = $_GET['path'] ?? '';
+    if (!validPath($path) || count(explode('/', $path)) !== 2) fail(400, 'bad path');
+    if (!canRead($path, $uid)) fail(403, 'not allowed');
+    $st = pdo()->prepare("SELECT data FROM docs WHERE path=?");
+    $st->execute([$path]);
+    $d = $st->fetchColumn();
+    if ($d === false) out(['exists' => false, 'data' => null]);
+    out(['exists' => true, 'data' => json_decode($d, true) ?: new stdClass()]);
+  }
+
+  case 'write': {
+    $path = $in['path'] ?? '';
+    $mode = $in['mode'] ?? 'set';
+    $data = $in['data'] ?? [];
+    if (!validPath($path) || count(explode('/', $path)) !== 2) fail(400, 'bad path');
+    if (!is_array($data)) fail(400, 'bad data');
+    if (!canWrite($path, $uid)) fail(403, 'not allowed');
+    if (!in_array($mode, ['set', 'update', 'merge'], true)) fail(400, 'bad mode');
+
+    $pdo = pdo();
+    $st = $pdo->prepare("SELECT data FROM docs WHERE path=?");
+    $st->execute([$path]);
+    $cur = $st->fetchColumn();
+    $exists = $cur !== false;
+    if ($mode === 'update' && !$exists) fail(404, 'not found');
+
+    $base = ($mode === 'set' || !$exists) ? [] : (json_decode($cur, true) ?: []);
+    foreach ($data as $k => $v) {
+      if (is_array($v) && isset($v['__delete__']) && $v['__delete__'] === true) { unset($base[$k]); continue; }
+      $base[$k] = $v;
+    }
+    $json = json_encode($base, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $ins = $pdo->prepare("INSERT INTO docs (path, coll, data) VALUES (?,?,?) ON DUPLICATE KEY UPDATE data=VALUES(data)");
+    $ins->execute([$path, collOf($path), $json]);
+    out(['ok' => true]);
+  }
+
+  case 'delete': {
+    $path = $in['path'] ?? '';
+    if (!isAdmin()) fail(403, 'not allowed');
+    if (!validPath($path)) fail(400, 'bad path');
+    $st = pdo()->prepare("DELETE FROM docs WHERE path=?");
+    $st->execute([$path]);
+    out(['ok' => true]);
+  }
+
+  case 'setup': {
+    // اولین بار: رمز ادمین را خودتان تعیین می‌کنید؛ بعد از آن این کار بسته می‌شود
+    if (adminHash() !== null) fail(409, 'already set');
+    $pw = (string)($in['password'] ?? '');
+    if (strlen($pw) < 10) fail(400, 'password too short');
+    $h = password_hash($pw, PASSWORD_DEFAULT);
+    $st = pdo()->prepare("INSERT INTO meta (k, v) VALUES ('admin_hash', ?)");
+    $st->execute([$h]);
+    $_SESSION['admin'] = true;
+    out(['ok' => true]);
+  }
+
+  case 'login': {
+    $h = adminHash();
+    if ($h === null) fail(409, 'not set');
+    $pw = (string)($in['password'] ?? '');
+    if (!password_verify($pw, $h)) { usleep(600000); fail(403, 'wrong password'); }
+    session_regenerate_id(true);
+    $_SESSION['admin'] = true;
+    out(['ok' => true]);
+  }
+
+  case 'seed': {
+    // ادمین: وارد کردن داده‌های اولیه از فایل‌های seed (فقط اگر سند از قبل وجود نداشته باشد)
+    if (!isAdmin()) fail(403, 'not allowed');
+    $files = ['seed-events.json' => 'events', 'seed-communities.json' => 'communities', 'seed-sources.json' => 'sources'];
+    $pdo = pdo();
+    $ins = $pdo->prepare("INSERT IGNORE INTO docs (path, coll, data) VALUES (?,?,?)");
+    $counts = [];
+    foreach ($files as $file => $coll) {
+      $fp = __DIR__ . '/' . $file;
+      if (!is_file($fp)) { $counts[$coll] = 'missing'; continue; }
+      $rows = json_decode(file_get_contents($fp), true);
+      if (!is_array($rows)) { $counts[$coll] = 'bad json'; continue; }
+      $n = 0;
+      foreach ($rows as $row) {
+        if (!isset($row['id'], $row['data']) || !validPath($coll . '/' . $row['id'])) continue;
+        $ins->execute([$coll . '/' . $row['id'], $coll, json_encode($row['data'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+        $n += $ins->rowCount();
+      }
+      $counts[$coll] = $n;
+    }
+    out(['ok' => true, 'inserted' => $counts]);
+  }
+
+  case 'cleanup': {
+    // هر روز توسط VPS صدا زده می‌شود: برنامه‌هایی که تاریخ پایانشان (endDate یا date) قبل از امروز (به وقت استکهلم) است
+    // از لیست سایت برداشته و در مجموعه‌ی archive نگهداری می‌شوند. برنامه‌ی امروز تا فردا می‌ماند. تاریخ نامعتبر = دست نمی‌خورد.
+    if (!tokenOk() && !isAdmin()) fail(403, 'not allowed');
+    $dry = isset($_GET['dry']);
+    $today = (new DateTime('now', new DateTimeZone('Europe/Stockholm')))->format('Y-m-d');
+    $pdo = pdo();
+    $rows = $pdo->query("SELECT path, data FROM docs WHERE coll='events'")->fetchAll(PDO::FETCH_ASSOC);
+    $old = []; $kept = 0;
+    foreach ($rows as $r) {
+      $d = json_decode($r['data'], true) ?: [];
+      $end = (string)($d['endDate'] ?? $d['date'] ?? '');
+      if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $end) || $end >= $today) { $kept++; continue; }
+      $old[] = ['path' => $r['path'], 'data' => $d, 'raw' => $r['data']];
+    }
+    if (!$dry && $old) {
+      $pdo->beginTransaction();
+      $ins = $pdo->prepare("INSERT INTO docs (path, coll, data) VALUES (?,?,?) ON DUPLICATE KEY UPDATE data=VALUES(data)");
+      $del = $pdo->prepare("DELETE FROM docs WHERE path=?");
+      foreach ($old as $o) {
+        $d = $o['data']; $d['archivedAt'] = $today;
+        $ins->execute(['archive/' . substr($o['path'], 7), 'archive', json_encode($d, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+        $del->execute([$o['path']]);
+      }
+      $pdo->commit();
+    }
+    out(['ok' => true, 'dry' => $dry, 'today' => $today, 'archived' => $dry ? 0 : count($old), 'wouldArchive' => count($old), 'kept' => $kept,
+         'list' => array_slice(array_map(function ($o) { return ($o['data']['date'] ?? '?') . ' ' . ($o['data']['title'] ?? $o['path']); }, $old), 0, 40)]);
+  }
+
+  case 'logout':
+    $_SESSION = [];
+    session_destroy();
+    out(['ok' => true]);
+
+  default:
+    fail(400, 'unknown op');
+}

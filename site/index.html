@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#17251E">
+<title>BezanBerim · بزن بریم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@600;800&family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></symbol>
+  <symbol id="i-party" viewBox="0 0 24 24"><path d="M4 20l5-14 9 9z"/><path d="M14 4l1 2M19 9l2-1M17 3l-1 3M20 13l-2 0"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></symbol>
+  <symbol id="i-sun2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M15.5 14.6c2.9.2 5.5 2.2 5.5 5.4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-ig" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 8a2 2 0 002-2h14a2 2 0 002 2v2a2 2 0 000 4v2a2 2 0 00-2 2H5a2 2 0 00-2-2v-2a2 2 0 000-4z"/><path d="M14 6v12" stroke-dasharray="2 2"/></symbol>
+</svg>
+
+<header class="site-header">
+  <div class="wrap">
+    <div class="bar">
+      <a class="logo" href="#top" aria-label="BezanBerim">
+        <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#5FD3A4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/><path d="M10.2 8.3l4 1.7-4 1.7z" fill="#5FD3A4"/></svg></span>
+        <span><b>بزن بریم</b><small>BezanBerim</small></span>
+      </a>
+      <label class="pill country"><svg class="ico"><use href="#i-pin"/></svg><span class="sr">کشور</span><select id="countrySel"></select></label>
+      <span class="spacer"></span>
+      <a class="btn-dark" href="#add"><svg class="ico"><use href="#i-plus"/></svg>معرفی برنامه</a>
+    </div>
+    <nav class="nav" id="nav" aria-label="دسته‌ها">
+      <button type="button" class="hot" data-nav="new"><svg class="ico"><use href="#i-spark"/></svg>تازه‌های بزن بریم</button>
+      <button type="button" data-nav="today"><svg class="ico"><use href="#i-sun"/></svg>امروز چه خبره؟</button>
+      <button type="button" data-nav="weekend"><svg class="ico"><use href="#i-cal"/></svg>این آخر هفته چیکار کنم؟</button>
+      <button type="button" data-nav="concert"><svg class="ico"><use href="#i-mic"/></svg>کنسرت‌ها</button>
+      <button type="button" data-nav="party"><svg class="ico"><use href="#i-party"/></svg>پارتی‌ها</button>
+      <button type="button" data-nav="celebration"><svg class="ico"><use href="#i-moon"/></svg>یلدا و جشن‌ها</button>
+      <button type="button" data-nav="culture"><svg class="ico"><use href="#i-book"/></svg>فرهنگی</button>
+      <button type="button" data-nav="groups"><svg class="ico"><use href="#i-users"/></svg>گروه‌ها و انجمن‌ها</button>
+      <button type="button" data-nav="kurdish"><svg class="ico"><use href="#i-sun2"/></svg>کوردی</button>
+      <button type="button" data-nav="persian"><svg class="ico"><use href="#i-sun2"/></svg>ایرانی و افغانی</button>
+      <button type="button" data-nav="add"><svg class="ico"><use href="#i-plus"/></svg>ثبت صفحه</button>
+      <button type="button" class="love" data-nav="add"><svg class="ico"><use href="#i-heart"/></svg>بزن بریم رو با هم بسازیم</button>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="sky" aria-hidden="true">
+      <svg viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0B1712"/><stop offset=".55" stop-color="#173A2D"/><stop offset="1" stop-color="#3A3320"/></linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2C46B" stop-opacity=".55"/><stop offset="1" stop-color="#F2C46B" stop-opacity="0"/></linearGradient>
+        </defs>
+        <rect width="1440" height="520" fill="url(#g1)"/>
+        <g fill="#0A1410" opacity=".95" id="city"></g>
+        <rect y="430" width="1440" height="90" fill="url(#g2)" opacity=".35"/>
+      </svg>
+    </div>
+    <div class="wrap">
+      <p class="hello">به بزن بریم خوش آمدید</p>
+      <h1>هر برنامه‌ی ایرانی، کوردی و افغانی در اروپا، <em>اینجاست.</em></h1>
+      <form class="searchbox" id="heroSearch" role="search">
+        <svg class="ico"><use href="#i-search"/></svg>
+        <label class="sr" for="hq">جست‌وجو</label>
+        <input id="hq" type="search" placeholder="جست‌وجوی خواننده، دی‌جی، سالن، شهر… مثلاً Dawood یا Göteborg">
+        <button type="submit">جست‌وجو</button>
+      </form>
+      <button type="button" class="weekend" id="weekendCard">
+        <span class="stack" id="stack"><span></span><span></span><span></span></span>
+        <span class="wt"><span class="live">تازه‌های بزن بریم</span><b>ببین این آخر هفته چه خبره</b><small id="weekendTxt">کنسرت‌ها، پارتی‌ها و جشن‌های آخر هفته در سراسر اروپا. بکش پایین.</small></span>
+        <span class="arr"><svg class="ico"><use href="#i-left"/></svg></span>
+      </button>
+      <p class="pick">کشور خود را انتخاب کنید</p>
+      <div class="flags" id="flags"></div>
+      <a class="allads" href="#events">یا مشاهده‌ی همه‌ی برنامه‌ها ←</a>
+    </div>
+  </section>
+
+  <section class="block" id="soon">
+    <div class="wrap">
+      <div class="shead">
+        <div><p class="eyebrow">پیشنهاد بزن بریم</p><h2 id="soonTitle">برنامه‌های داغ پیش رو</h2><p id="soonSub">نزدیک‌ترین برنامه‌هایی که پوسترشان را از اینستاگرام برگزارکننده آورده‌ایم.</p></div>
+        <div class="tools"><button class="more" type="button" data-goto="events">همه‌ی برنامه‌ها ←</button><div class="arrows"><button type="button" id="prev" aria-label="قبلی"><svg class="ico"><use href="#i-right"/></svg></button><button type="button" id="next" aria-label="بعدی"><svg class="ico"><use href="#i-left"/></svg></button></div></div>
+      </div>
+      <div class="rail" id="rail"></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="cta">
+      <span class="ci"><svg class="ico"><use href="#i-ticket"/></svg></span>
+      <span class="ct"><b>برنامه‌ات رو به بزن بریم بیار</b><ul><li>ثبت رایگان</li><li>بررسی روزانه‌ی صفحه</li><li>دیده شدن در ۲۱ کشور اروپا</li></ul></span>
+      <a href="#add">صفحه‌ام رو معرفی می‌کنم ←</a>
+    </div>
+  </div>
+
+  <section class="block alt" id="events" style="margin-top:54px">
+    <div class="wrap">
+      <div class="shead">
+        <div><p class="eyebrow">رویدادها</p><h2 id="evTitle">رویدادها در سراسر اروپا</h2><p>کنسرت‌ها، پارتی‌ها، شب‌های یلدا و گردهمایی‌های فرهنگی جامعه‌ی ایرانی، کوردی و افغانی — همراه با لینک بلیت هر کدام.</p></div>
+      </div>
+      <div class="chips" id="cats" role="group" aria-label="دسته"></div>
+      <div class="filters">
+        <label class="sr" for="typeSel">نوع</label>
+        <select id="typeSel"><option value="all">ایرانی و کوردی</option><option value="persian">ایرانی / افغانی</option><option value="kurdish">کوردی</option></select>
+        <label class="sr" for="whenSel">زمان</label>
+        <select id="whenSel"><option value="all">هر زمان</option><option value="new">تازه اضافه‌شده</option><option value="today">امروز</option><option value="weekend">این آخر هفته</option><option value="week">۷ روز آینده</option><option value="month">۳۰ روز آینده</option></select>
+        <label class="sr" for="city">شهر</label>
+        <select id="city"><option value="">همه شهرها</option></select>
+        <label class="sr" for="q">جست‌وجو</label>
+        <input id="q" type="search" placeholder="جست‌وجو: DJ Lazo، یلدا، کوردی…">
+        <span class="count" id="count"></span>
+      </div>
+      <div id="list" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="block" id="groups">
+    <div class="wrap">
+      <div class="shead">
+        <div><p class="eyebrow">گروه‌ها و انجمن‌ها</p><h2 id="grTitle">گروه‌ها و انجمن‌ها</h2><p>انجمن‌های فرهنگی، کانون‌های جوانان و گروه‌های جامعه‌ی ایرانی، کوردی و افغانی — برای آشنایی، عضویت و دنبال کردن برنامه‌هایشان.</p></div>
+        <div class="tools"><a class="more" href="#add">معرفی گروه یا انجمن ←</a></div>
+      </div>
+      <div class="chips" id="grChips" role="group" aria-label="نوع گروه"></div>
+      <div class="ggrid" id="groupsList"></div>
+    </div>
+  </section>
+
+  <section class="block" id="add">
+    <div class="wrap">
+      <div class="panel" id="submitPanel">
+        <h2>اگر برنامه‌ای هست که ما از آن بی‌خبریم، در این بخش آن را اضافه کن</h2>
+        <p class="sub">(بعد از بررسی توسط Admin، صفحه مورد نظر به صورت دائمی مورد بررسی برای برنامه بعدی قرار خواهد گرفت)</p>
+        <form id="subForm" novalidate>
+          <div class="row2">
+            <label class="field"><span>پلتفرم</span>
+              <select id="sPlatform"><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="website">وب‌سایت</option></select>
+            </label>
+            <label class="field"><span>کشور</span><select id="sCountry"></select></label>
+          </div>
+          <label class="field"><span>آیدی یا لینک صفحه</span><input id="sHandle" class="ltr" placeholder="@organizer or https://instagram.com/organizer" autocomplete="off"></label>
+          <div class="row2">
+            <label class="field"><span>شهر (خالی = هر شهری)</span><input id="sCity" placeholder="هر شهری · Any city"></label>
+            <label class="field"><span>نوع برنامه‌ها</span><select id="sType"><option value="persian">ایرانی</option><option value="afghan">افغانی</option><option value="kurdish">کوردی</option><option value="all">همه</option></select></label>
+          </div>
+          <label class="field"><span>نوع صفحه</span><select id="sKind"><option value="گروه">گروه</option><option value="ایونت">ایونت</option><option value="انجمن">انجمن</option></select></label>
+          <label class="field"><span>یادداشت برای ادمین (اختیاری)</span><input id="sNote" placeholder="مثلاً: هر ماه کنسرت کوردی در یوتبوری می‌گذارد"></label>
+          <button class="btn" type="submit" id="sBtn">ارسال برای بررسی</button>
+          <div class="msg" id="sMsg" role="status"></div>
+          <div id="sFallback" hidden></div>
+        </form>
+        <div id="mine"></div>
+      </div>
+
+      <div class="panel" id="adminPanel" hidden style="margin-top:28px">
+        <h2>Admin · صف بررسی</h2>
+        <p class="sub">فقط شما و ویرایشگرها این بخش را می‌بینید. صفحه‌ی تأییدشده هر روز بررسی می‌شود.</p>
+        <div class="queue" id="queue"></div>
+        <h2 style="margin-top:28px;font-size:19px">صفحه‌های تحت پیگیری <span id="trackedN" style="color:var(--muted);font-weight:500;font-size:15px"></span></h2>
+        <p class="sub">روی دکمه‌ی هر صفحه بزن تا برنامه‌های مربوط به آن را ببینی.</p>
+        <ul class="sources" id="sources"></ul>
+        <h2 style="margin-top:28px;font-size:19px">راه تماس برای بازدیدکنندگان</h2>
+        <p class="sub">بازدیدکننده‌هایی که نمی‌توانند مستقیم ارسال کنند، درخواستشان را برای این آدرس می‌فرستند.</p>
+        <form id="contactForm" class="row2" style="align-items:end">
+          <label class="field"><span>ایمیل یا اینستاگرام</span><input id="contact" class="ltr" placeholder="@yourpage or you@example.com"></label>
+          <button class="btn ghost" type="submit">ذخیره</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div><b>بزن بریم</b> <span class="ltr" style="opacity:.7">· BezanBerim</span>
+      <p>برنامه‌ها هر روز از صفحه‌های تأییدشده‌ی اینستاگرام و فیسبوک و هر هفته از سایت‌های برنامه (Volek، Kurdish.Events، سالن‌های کنسرت و فستیوال‌ها) جمع‌آوری می‌شوند. برای ساعت و بلیت نهایی، صفحه‌ی برگزارکننده را ببینید.</p></div>
+    <div id="footStats"></div>
+  </div>
+</footer>
+
+<button class="fab" type="button" id="fab"><span class="m"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/></svg></span>امروز چی؟</button>
+
+<script src="assets/js/flags.js"></script>
+<script src="assets/js/backend.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
