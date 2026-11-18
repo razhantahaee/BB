@@ -155,7 +155,11 @@ def load_known():
 KNOWN = load_known()
 SEEN_SKIP = set()
 EXTRA_SEEN = []
-def known(u): return u.rstrip("/") in KNOWN
+SK = [0]
+def known(u):
+    k = u.rstrip("/") in KNOWN
+    if k: SK[0] += 1
+    return k
 
 # ---------- sites ----------
 def site_volek():
@@ -305,7 +309,6 @@ def site_discotehran():
 SITES = [
     ("volek.events", site_volek),
     ("javantik.com", site_javantik),
-    ("kurdish.events", lambda: generic("https://www.kurdish.events/", "kurdish.events", r'href=["\']((?:https://www\.kurdish\.events)?/events/[^"\'#?]+)')),
     ("globalsounds.se", lambda: generic("https://globalsounds.se/", "globalsounds.se", r'href=["\']((?:https://globalsounds\.se)?/program/[^"\'#?]+)')),
     ("discotehran.se", site_discotehran),
 ]
@@ -315,10 +318,11 @@ def main():
     cands, rows = [], []
     for name, fn in SITES:
         read = new = err = 0
+        SK[0] = 0
         try:
             items = fn()
         except Exception as e:
-            rows.append((name, "COULD NOT READ: %s" % str(e)[:80], 0, 0)); continue
+            rows.append((name, "COULD NOT READ: %s" % str(e)[:80], 0, 0, 0, SK[0])); continue
         try:
             with open("seen_urls.txt", "a", encoding="utf-8") as sf:
                 for c in items: sf.write(c["url"] + "\n")
@@ -335,13 +339,21 @@ def main():
             if is_existing(c, keys): continue                             # already on the site
             c["found"] = TODAY
             cands.append(c); new += 1
-        rows.append((name, "ok", read, new, err))
+        rows.append((name, "ok", read, new, err, SK[0]))
     os.makedirs("findings", exist_ok=True)
-    json.dump(cands, open("findings/website-%s.json" % TODAY, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    lines = ["| Website | Status | Events read | New candidates | Page errors |", "|---|---|---|---|---|"]
+    fn_today = "findings/website-%s.json" % TODAY
+    try:                                   # keep what earlier runs of today found (never overwrite with less)
+        old = json.load(open(fn_today, encoding="utf-8"))
+    except Exception:
+        old = []
+    byurl = {c["url"]: c for c in old}
+    for c in cands: byurl[c["url"]] = c
+    cands = list(byurl.values())
+    json.dump(cands, open(fn_today, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    lines = ["| Website | Status | New events read | New candidates | Page errors | Already known (skipped) |", "|---|---|---|---|---|---|"]
     for r in rows:
-        r = list(r) + [0] * (5 - len(r))
-        lines.append("| %s | %s | %s | %s | %s |" % tuple(r))
+        r = list(r) + [0] * (6 - len(r))
+        lines.append("| %s | %s | %s | %s | %s | %s |" % tuple(r))
     open("findings/website-%s.summary.txt" % TODAY, "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
 
