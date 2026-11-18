@@ -26,10 +26,14 @@ def bget(url):
     return pg.content()
 
 def bclose():
-    try:
-        if "b" in _PW: _PW["b"].close(); _PW["p"].stop()
-    except Exception:
-        pass
+    """Close the browser, but never hang: give it 10 s, then the process is ended by os._exit in __main__."""
+    import threading
+    def _c():
+        try:
+            if "b" in _PW: _PW["b"].close(); _PW["p"].stop()
+        except Exception:
+            pass
+    t = threading.Thread(target=_c, daemon=True); t.start(); t.join(10)
 
 def get(url, accept="text/html,*/*"):
     if url in BROWSER_ONLY_HOSTS_SEEN_BLOCKED(url):
@@ -362,3 +366,5 @@ if __name__ == "__main__":
         main()
     finally:
         bclose()
+        sys.stdout.flush(); sys.stderr.flush()
+        os._exit(0)      # leave even if the browser driver is still hanging

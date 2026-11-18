@@ -11,3 +11,6 @@ Write the result as one JSON list (websites + Instagram together; for Instagram 
 title, date, time, city, country, venue, price, type, image, ticket_url, source_url, notes
 Put doubts (conflicting dates, unclear venue) in notes.
 Do not modify sources.txt or any other file. Do not run git.
+
+Work only from the data in the files. Do NOT open web pages and do not run commands; if a field is missing write "unknown".
+Only handle candidates whose "found" date is today and that are not in "Existing events". Be quick: this step must finish in a few minutes.
