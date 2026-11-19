@@ -80,7 +80,7 @@ switch ($op) {
       if (isAdmin()) $st = pdo()->prepare("SELECT path, data FROM docs WHERE coll=?");
       else { if ($uid === null) out(['docs' => []]); $st = pdo()->prepare("SELECT path, data FROM docs WHERE path=?"); $path = 'submissions/' . $uid; }
       if (isAdmin()) $st->execute([$c]); else $st->execute([$path]);
-    } elseif ($c === 'sources') {
+    } elseif ($c === 'sources' || $c === 'pending') {
       if (!isAdmin()) out(['docs' => []]);
       $st = pdo()->prepare("SELECT path, data FROM docs WHERE coll=?"); $st->execute([$c]);
     } elseif (in_array($c, ['events', 'communities', 'config'], true)) {
@@ -215,6 +215,33 @@ switch ($op) {
     }
     out(['ok' => true, 'dry' => $dry, 'today' => $today, 'archived' => $dry ? 0 : count($old), 'wouldArchive' => count($old), 'kept' => $kept,
          'list' => array_slice(array_map(function ($o) { return ($o['data']['date'] ?? '?') . ' ' . ($o['data']['title'] ?? $o['path']); }, $old), 0, 40)]);
+  }
+
+  case 'import': {
+    // VPS (token) sends candidate events. They only land in pending/<id> = approval queue; NOTHING goes live without the admin.
+    if (!tokenOk()) fail(403, 'not allowed');
+    $list = $in['events'] ?? [];
+    if (!is_array($list) || count($list) > 300) fail(400, 'bad events');
+    $pdo = pdo();
+    $known = [];
+    foreach ($pdo->query("SELECT path FROM docs WHERE coll IN ('events','pending','archive')")->fetchAll(PDO::FETCH_COLUMN) as $pth) $known[substr($pth, strpos($pth, '/') + 1)] = 1;
+    $ins = $pdo->prepare("INSERT INTO docs (path, coll, data) VALUES (?,?,?)");
+    $today = (new DateTime('now', new DateTimeZone('Europe/Stockholm')))->format('Y-m-d');
+    $added = 0; $skipped = 0;
+    foreach ($list as $e) {
+      if (!is_array($e)) { $skipped++; continue; }
+      $id = (string)($e['id'] ?? '');
+      if (!preg_match('/^[a-z0-9\-]{3,120}$/', $id) || isset($known[$id])) { $skipped++; continue; }
+      $clean = [];
+      foreach (['title','date','time','city','country','venue','price','type','image','url','source','organizer','notes','postedAt'] as $k) {
+        if (isset($e[$k]) && is_scalar($e[$k])) $clean[$k] = mb_substr((string)$e[$k], 0, 600);
+      }
+      if (empty($clean['title'])) { $skipped++; continue; }
+      $clean['status'] = 'pending'; $clean['importedAt'] = $today;
+      $ins->execute(['pending/' . $id, 'pending', json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+      $known[$id] = 1; $added++;
+    }
+    out(['ok' => true, 'added' => $added, 'skipped' => $skipped]);
   }
 
   case 'logout':

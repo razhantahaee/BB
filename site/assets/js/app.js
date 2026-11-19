@@ -6,7 +6,7 @@ var NAME={}, EN={}; COUNTRIES.forEach(function(c){NAME[c[0]]=c[1];EN[c[0]]=c[2];
 var $=function(id){return document.getElementById(id);};
 
 // ---------- state & helpers ----------
-var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null};
+var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],pending:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null};
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function safeUrl(u){ u=String(u||""); return /^https?:\/\//i.test(u)?u:""; }
 function safeImg(u){ u=String(u||""); if(/^thumbs\/[a-z0-9._-]+\.(jpe?g|png|webp)$/i.test(u)) return u; return /^https:\/\/(www\.javantik\.com\/cdn\/events-image|volek\.events\/wp-content\/uploads|www\.kingsplace\.co\.uk\/wp-content\/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co\/storage\/v1\/object\/public\/posters)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp)$/i.test(u)?u:""; }
@@ -265,8 +265,18 @@ function renderQueue(){
   var c=$("contact"); if(document.activeElement!==c) c.value=st.contact||"";
 }
 
+function renderPending(){
+  var el=$("pending"); if(!el||!st.canEdit) return;
+  var list=st.pending.filter(function(e){return e.status==="pending";}).sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
+  $("pendN").textContent="("+faNum(list.length)+")";
+  el.innerHTML=list.length? list.map(function(e){
+    var ok=/^\d{4}-\d{2}-\d{2}$/.test(e.date||"")&&e.title&&e.country&&/^[a-z]{2}$/i.test(e.country);
+    var u=safeUrl(e.url);
+    return '<div class="qitem"><div><div class="who">'+esc(e.title)+'</div><div style="color:var(--muted);font-size:13.5px" class="ltr">'+esc([e.date||"?",e.time,e.venue,e.city,(e.country||"").toUpperCase(),e.price,e.type].filter(function(x){return x&&x!=="unknown";}).join(" · "))+'</div>'+(e.notes?'<div class="sm">'+esc(e.notes)+'</div>':'')+(u?'<div class="sm"><a href="'+esc(u)+'" target="_blank" rel="noopener">لینک</a></div>':'')+(ok?'':'<div class="sm">تاریخ یا کشور نامشخص؛ فقط رد کردن ممکن است.</div>')+'</div><div class="act"><button class="btn small ok" data-pact="approve" data-id="'+esc(e.id)+'"'+(ok?'':' disabled')+'>تأیید و انتشار</button><button class="btn small no" data-pact="reject" data-id="'+esc(e.id)+'">رد</button></div></div>';
+  }).join("") : '<div class="empty">پیشنهاد جدیدی نیست.</div>';
+}
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
-function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); }
+function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); }
 
 // ---------- city skyline in the hero ----------
 (function(){
@@ -379,6 +389,19 @@ $("queue").addEventListener("click",async function(ev){
   }
   catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
 });
+$("pending").addEventListener("click",async function(ev){
+  var b=ev.target.closest("button[data-pact]"); if(!b||!st.db) return;
+  var id=b.getAttribute("data-id"), e=st.pending.find(function(x){return x.id===id;}); if(!e) return;
+  b.disabled=true;
+  try{
+    if(b.getAttribute("data-pact")==="approve"){
+      var d={title:e.title,date:e.date,time:e.time||"",venue:e.venue||"",city:e.city||"",country:String(e.country).toLowerCase(),price:e.price||"See ticket page",type:e.type||"both",url:e.url||"",source:e.source||"",organizer:e.organizer||"",addedAt:new Date().toISOString().slice(0,10)};
+      if(e.image) d.image=e.image;
+      await st.db.doc("events/"+id).set(d);
+      await st.db.doc("pending/"+id).update({status:"approved",reviewedAt:new Date().toISOString()});
+    } else await st.db.doc("pending/"+id).update({status:"rejected",reviewedAt:new Date().toISOString()});
+  }catch(err){ b.disabled=false; b.textContent="خطا، دوباره"; }
+});
 $("sources").addEventListener("click",async function(ev){
   var o=ev.target.closest("button[data-open]");
   if(o){ var id0=o.getAttribute("data-open"); st.openSrc=(st.openSrc===id0?null:id0); renderSources(); return; }
@@ -417,6 +440,9 @@ render();
   db.collection("sources").onSnapshot(function(snap){
     st.sources=snap.docs.map(function(d){var x=Object.assign({},d.data());x.id=d.id;return x;}); first.src=true; maybe();
   },function(){ first.src=true; maybe(); });
+  db.collection("pending").onSnapshot(function(snap){
+    st.pending=snap.docs.map(function(d){var x=Object.assign({},d.data());x.id=d.id;return x;}); renderPending();
+  },function(){});
   db.collection("communities").onSnapshot(function(snap){
     st.groups=snap.docs.map(function(d){var x=Object.assign({},d.data());x.id=d.id;return x;}); renderGroups();
   },function(){});

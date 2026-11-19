@@ -33,3 +33,4 @@ A human (Hosein) approves every event before it goes on the website. Never add e
 - kurdish.events is behind a Vercel "Security Checkpoint" (HTTP 429), also for headless Firefox. Do not try to bypass it; skip the site until the owners give an API/feed/allowlist.
 - discotehran.se is ONE page with event cards (no per-event URLs). site_discotehran()/parse_discotehran() read only the "Upcoming Parties" block; 0 events is normal when it only shows "Soon" placeholders. Card has no year (next matching date is used) and the ticket link is the home page.
 - Instagram can ask for a login/security check: stop immediately and tell the user.
+- Site import: after the Claude cleaning, `site_sync.py import` sends findings/website-checked-DATE.json to api.php op=import -> pending/<id> (approval queue in the admin panel). Hosein approves/rejects there; approved -> events/<id>. Never write to events/ from code.

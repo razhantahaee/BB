@@ -22,6 +22,7 @@ if [ -f prompts/daily.txt ]; then
     --allowedTools "Read,Write,Edit,Bash(git:*),Bash(python3:*)" \
     >> ~/bb.log 2>&1 || echo "claude step failed" >> ~/bb.log
 fi
+timeout -k 5 120 ~/BB/.venv/bin/python site_sync.py import >> ~/bb.log 2>&1 || echo "site import skipped/failed" >> ~/bb.log   # candidates -> approval queue only
 pkill -u bb -f 'playwright/driver' 2>/dev/null || true   # no leftover browsers
 echo "last run: $(date -Is)" > status.txt
 git add -A
