@@ -105,13 +105,15 @@ def main():
         since = max(1, min(7, math.ceil(hours / 24)))      # a missed day is covered by a wider window
     seen_codes = {c for info in st["pages"].values() for c in info.get("seen", [])}
 
-    posts, rows, spent = [], [], 0
+    posts, rows, spent, base_spent = [], [], 0, 0
     def run(urls, limit, since_days, label):
         nonlocal spent
         for i in range(0, len(urls), BATCH):
             chunk = urls[i:i + BATCH]
-            cap = max(1, min(cap_day - spent, len(chunk) * limit + len(chunk)))
-            if cap_day - spent <= 0: log("daily cap reached - rest tomorrow"); return
+            # baseline (one-time, new pages) may use the whole month's budget; daily checks stay under the daily cap
+            room = (remaining - spent) if label == "baseline" else (cap_day - (spent - base_spent))
+            cap = max(1, min(room, len(chunk) * limit + len(chunk)))
+            if room <= 0: log("cap reached - rest tomorrow"); return
             log("%s: asking Apify for %d pages (limit %d, window %s, cap %d rows)" % (label, len(chunk), limit, ("%d days" % since_days) if since_days else "none", cap))
             t0 = time.time(); items = call(chunk, limit, since_days, cap); spent += len(items)
             log("  got %d rows in %.0fs" % (len(items), time.time() - t0))
@@ -134,10 +136,14 @@ def main():
                               "owner": it.get("ownerUsername", ""), "location": it.get("locationName", ""),
                               "pinned": bool(it.get("isPinned"))})
             for u in chunk:
-                h = handle(u); info = st["pages"].setdefault(h, {"seen": []}); info["checked"] = TODAY.isoformat()
+                h = handle(u)
+                if h not in answered:        # no row at all (cap reached): leave the page untouched, it stays "new" for tomorrow
+                    rows.append((h, label + " (not answered)", 0)); continue
+                info = st["pages"].setdefault(h, {"seen": []}); info["checked"] = TODAY.isoformat()
                 rows.append((h, label, sum(1 for p in posts if p["page"] == h)))
     try:
-        if todo_new: run(todo_new, 10, None, "baseline")
+        if todo_new:
+            run(todo_new, 10, None, "baseline"); base_spent = spent
         if todo_daily: run(todo_daily, 3, since, "daily")
     except Exception as e:
         st["used"] += spent; save_state(st); log("FAILED: %s" % e); sys.exit(1)
