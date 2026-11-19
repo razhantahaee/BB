@@ -8,8 +8,13 @@ echo "$(date -Is) start" >> ~/bb.log
 # 0) remove finished events from the site (archive); skipped if BB_API_URL/BB_TOKEN are not set
 timeout -k 5 90 ~/BB/.venv/bin/python site_sync.py cleanup >> ~/bb.log 2>&1 || echo "site cleanup skipped/failed" >> ~/bb.log
 timeout -k 10 900 ~/BB/.venv/bin/python -u fetch_sites.py >> ~/bb.log 2>&1
-# Instagram step: only runs if the switch file exists (create it with: touch ~/BB/.ig_on)
-if [ -f .ig_on ] && [ -f instagram_state.json ]; then
+# Instagram step: Apify first (fast, no login); the browser reader ig_check.py is the fallback.
+# Apify runs when APIFY_TOKEN is set in ~/.config/bb/env. ig_check.py runs only if .ig_on exists.
+IG_DONE=0
+if [ -n "$APIFY_TOKEN" ]; then
+  timeout -k 10 600 ~/BB/.venv/bin/python -u apify_ig.py >> ~/bb.log 2>&1 && IG_DONE=1 || echo "apify step failed" >> ~/bb.log
+fi
+if [ "$IG_DONE" = "0" ] && [ -f .ig_on ] && [ -f instagram_state.json ]; then
   timeout -k 10 2400 ~/BB/.venv/bin/python ig_check.py --all >> ~/bb.log 2>&1 || echo "instagram step failed" >> ~/bb.log
 fi
 if [ -f prompts/daily.txt ]; then

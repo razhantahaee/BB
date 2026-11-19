@@ -3,8 +3,5 @@
 __pycache__/
 .ig_on
 *_state.json
-<<<<<<< Updated upstream
->>>>>>> c6db2b1 (ignore state files)
 site/api/config.php
-=======
->>>>>>> Stashed changes
+instagram_seen.json.tmp

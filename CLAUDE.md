@@ -7,7 +7,8 @@ A human (Hosein) approves every event before it goes on the website. Never add e
 - sources.txt  - feeds to check: Instagram pages, Facebook pages (none yet), websites, and "Existing events" (Title | Date | City) for dedup. Do not edit by hand unless asked.
 - known_urls.txt / seen_urls.txt - URLs already on the site / already looked at (fetch_sites.py skips them).
 - fetch_sites.py - reads volek.events (REST list + event pages), javantik.com, globalsounds.se, discotehran.se (kurdish.events was removed: bot protection) -> findings/website-DATE.json + .summary.txt. Falls back to headless Firefox (playwright) when a site answers 454/429/403.
-- ig_check.py - reads latest posts of Instagram pages with the saved login (instagram_state.json; test mode = 3 pages, --all = all). Reads 6 posts, keeps the 3 newest. Switch for the daily job: touch ~/BB/.ig_on
+- apify_ig.py - DAILY Instagram check through Apify (apify/instagram-scraper): fast, no login. Needs APIFY_TOKEN in ~/.config/bb/env (never print or commit it). Monthly row budget (APIFY_MONTHLY_ITEMS, default 1800), daily cap, activity tiers (quiet pages less often), new pages get a baseline of 10 posts. State in apify_state.json (git-ignored). run.sh uses it first and falls back to ig_check.py if it fails.
+- ig_check.py - FALLBACK browser reader. reads latest posts of Instagram pages with the saved login (instagram_state.json; test mode = 3 pages, --all = all). Reads 6 posts, keeps the 3 newest. Switch for the daily job: touch ~/BB/.ig_on
 - prompts/daily.txt - the cleaning prompt used by `claude -p` in run.sh -> findings/website-checked-DATE.json
 - run.sh - daily job started by cron: pull, fetch_sites, ig_check (if .ig_on), claude cleaning, write status.txt, commit, push. Log: ~/bb.log
 - .venv - Python venv with playwright (use ~/BB/.venv/bin/python).
