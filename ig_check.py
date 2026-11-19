@@ -7,7 +7,7 @@ Usage:  python ig_check.py            -> test: first 3 pages only
 Daily mode: opens posts newest-first and STOPS as soon as it is clear nothing newer follows
 (pinned posts are max 3 and come first, so a post number 4+ that is older than yesterday means nothing newer follows). Keeps posts from today/yesterday.
 Every step is logged with a time stamp. Results are saved after every page."""
-import datetime, json, os, random, sys, time
+import datetime, json, os, random, subprocess, sys, threading, time
 from playwright.sync_api import sync_playwright
 
 TODAY = datetime.date.today()
@@ -17,9 +17,41 @@ ALL = "--all" in sys.argv or FIRST
 N = int(sys.argv[sys.argv.index("--n") + 1]) if "--n" in sys.argv else None
 MAXLINKS = 10 if FIRST else 6
 BUDGET = 2100   # seconds; stop cleanly before run.sh's timeout so results are always saved
+STALL = 150     # watchdog: no log line for this many seconds = hung -> save and exit
 T0 = time.time()
+LAST = [time.time()]
+RESULTS = []
 
-def log(msg): print("[%4ds] %s" % (time.time() - T0, msg), flush=True)
+def log(msg):
+    LAST[0] = time.time()
+    print("[%4ds] %s" % (time.time() - T0, msg), flush=True)
+
+def watchdog():
+    # Playwright calls can hang on this low-RAM VPS (no swap). If nothing is logged for STALL s,
+    # save what we have, kill our browser and exit, so the daily job never hangs.
+    while True:
+        time.sleep(10)
+        if time.time() - LAST[0] > STALL:
+            log("!! WATCHDOG: no progress for %ds - saving and exiting" % STALL)
+            try: save(RESULTS)
+            except Exception as e: log("   save failed: %s" % e)
+            subprocess.run(["pkill", "-u", str(os.getuid()), "-f", "ms-playwright/firefox"])
+            subprocess.run(["pkill", "-u", str(os.getuid()), "-f", "playwright/driver"])
+            sys.stdout.flush(); os._exit(2)
+
+def load_state():
+    # Load ONLY the cookies (they hold the login). The saved localStorage (~330 KB of Instagram
+    # web-app cache) makes Firefox's new_context() hang for minutes on this VPS.
+    d = json.load(open(STATE, encoding="utf-8"))
+    return {"cookies": d.get("cookies", []), "origins": []}
+
+def save_cookies(ctx):
+    # Refresh cookies in the session file, keep the rest of the file as it is.
+    d = json.load(open(STATE, encoding="utf-8"))
+    d["cookies"] = ctx.cookies()
+    tmp = STATE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f: json.dump(d, f)
+    os.chmod(tmp, 0o600); os.replace(tmp, STATE)
 
 def pages():
     out, sec = [], False
@@ -49,11 +81,15 @@ def save(results):
 
 def main():
     if not os.path.exists(STATE): sys.exit("missing " + STATE)
-    results, rows = [], []
+    results, rows = RESULTS, []
+    threading.Thread(target=watchdog, daemon=True).start()
     with sync_playwright() as p:
         log("starting headless Firefox")
-        b = p.firefox.launch(headless=True)
-        ctx = b.new_context(storage_state=STATE, locale="en-US", viewport={"width": 1280, "height": 1600})
+        b = p.firefox.launch(headless=True, timeout=60000)
+        log("browser up, loading session cookies")
+        ctx = b.new_context(storage_state=load_state(), locale="en-US", viewport={"width": 1280, "height": 1600})
+        ctx.set_default_timeout(30000); ctx.set_default_navigation_timeout(45000)
+        log("opening tab")
         pg = ctx.new_page()
         todo = pages()
         log("%d pages to check%s" % (len(todo), " (FIRST mode: 10 posts each)" if FIRST else ""))
@@ -115,7 +151,10 @@ def main():
             log("DONE %s: %s (%d posts, %d recent)" % (name, row["status"], row["posts"], row["recent"]))
             save(results)
             pause(3, 6, "(before next page)")
-        ctx.storage_state(path=STATE)   # keep the session fresh
+        try:
+            save_cookies(ctx); log("session cookies refreshed")   # keep the session fresh
+        except Exception as e: log("cookie save failed: %s" % str(e)[:80])
+        log("closing browser")
         b.close()
     save(results)
     print("| Page | Status | Posts read | Recent (today/yesterday) |\n|---|---|---|---|")
