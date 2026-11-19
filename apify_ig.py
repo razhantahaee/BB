@@ -17,7 +17,11 @@ Needs APIFY_TOKEN in ~/.config/bb/env (never commit it). Cost control (all numbe
 Exit code 1 on any failure, so run.sh can fall back to ig_check.py."""
 import datetime, json, math, os, re, sys, time, urllib.error, urllib.request
 
-TODAY = datetime.date.today()
+try:
+    from zoneinfo import ZoneInfo
+    TODAY = datetime.datetime.now(ZoneInfo("Europe/Stockholm")).date()   # same "today" on every machine (the VM may run on UTC)
+except Exception:
+    TODAY = datetime.date.today()
 NOW = datetime.datetime.now(datetime.timezone.utc)
 STATE_FILE = "apify_state.json"          # ignored by git (*_state.json): budget + per-page memory, local to this machine
 ACTOR = "apify~instagram-scraper"
@@ -121,8 +125,10 @@ def main():
             for it in items:
                 owner_input = handle(it.get("inputUrl", ""))
                 answered.add(owner_input)
+                if it.get("error") and it.get("error") != "no_items" and (it.get("shortCode") or it.get("caption")):
+                    log("  note for %s: %s" % (owner_input or it.get("ownerUsername", "?"), it.get("errorDescription", it["error"])))
                 if it.get("error"):
-                    if it["error"] != "no_items": log("  %s: %s" % (owner_input, it.get("errorDescription", it["error"])))
+                    if it["error"] != "no_items": log("  %s: %s" % (owner_input or it.get("url", "?"), it.get("errorDescription", it["error"])))
                     continue
                 c = it.get("shortCode") or code(it.get("url", ""))
                 ts = (it.get("timestamp") or "")[:10]
@@ -155,7 +161,7 @@ def main():
     if os.path.exists(name):
         try: old = json.load(open(name, encoding="utf-8"))
         except Exception: old = []
-    keep = {p["post_url"]: p for p in old}; keep.update({p["post_url"]: p for p in posts})
+    keep = {code(p["post_url"]): p for p in old}; keep.update({code(p["post_url"]): p for p in posts})   # same post = same shortcode, whichever reader found it
     json.dump(list(keep.values()), open(name, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     log("done: %d new posts, %d rows billed (assumed), month %d/%d" % (len(posts), spent, st["used"], MONTHLY))
     print("| Page | Tier | New posts |\n|---|---|---|")
