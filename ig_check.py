@@ -6,8 +6,10 @@ Usage:  python ig_check.py            -> test: first 3 pages only
         python ig_check.py --first    -> FIRST-TIME read: last 10 posts per page, all kept (file social-instagram-DATE-first.json)
 Daily mode: opens posts newest-first and STOPS as soon as it is clear nothing newer follows
 (pinned posts are max 3 and come first, so a post number 4+ that is older than yesterday means nothing newer follows). Keeps posts from today/yesterday.
+Memory: instagram_seen.json remembers the post links already seen per page. After a page has a baseline, only NEW links are opened
+(a page with nothing new costs one profile load, about 10 s). A page without history gets the baseline run (up to 6 posts, keeps today/yesterday).
 Every step is logged with a time stamp. Results are saved after every page."""
-import datetime, json, os, random, subprocess, sys, threading, time
+import datetime, json, os, random, re, subprocess, sys, threading, time
 from playwright.sync_api import sync_playwright
 
 TODAY = datetime.date.today()
@@ -21,6 +23,22 @@ STALL = 150     # watchdog: no log line for this many seconds = hung -> save and
 T0 = time.time()
 LAST = [time.time()]
 RESULTS = []
+SEEN_FILE = "instagram_seen.json"
+
+def code(link):
+    m = re.search(r"/(?:p|reel)/([A-Za-z0-9_-]+)", link)
+    return m.group(1) if m else link
+
+def load_seen():
+    try: return json.load(open(SEEN_FILE, encoding="utf-8"))
+    except Exception: return {}
+
+SEEN = load_seen()
+
+def save_seen():
+    tmp = SEEN_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f: json.dump(SEEN, f, indent=0)
+    os.replace(tmp, SEEN_FILE)
 
 def log(msg):
     LAST[0] = time.time()
@@ -120,17 +138,29 @@ def main():
                         log("  no posts found. url=%s title=%r text=%r" % (pg.url, pg.title()[:60], body))
                     except Exception: pass
                     row["status"] = "no posts found"; rows.append(row); save(results); pause(3, 6, "(next page)"); continue
+                seen_list = SEEN.get(name)
+                known_page = seen_list is not None and not FIRST
+                if known_page:
+                    todo_links = [l for l in links if code(l) not in seen_list]
+                    log("  %d of %d links are NEW (not seen before)" % (len(todo_links), len(links)))
+                    if not todo_links:
+                        SEEN[name] = seen_list; save_seen()
+                        row["status"] = "no new posts"; rows.append(row)
+                        log("DONE %s: no new posts" % name); save(results); pause(2, 4, "(before next page)"); continue
+                else:
+                    todo_links = links
+                    log("  no history for this page: baseline run")
                 posts, seen_recent = [], False
-                for k, l in enumerate(links, 1):
-                    pause(2, 4, "(before post %d/%d)" % (k, len(links)))
-                    log("  opening post %d/%d %s" % (k, len(links), l))
+                for k, l in enumerate(todo_links, 1):
+                    pause(2, 4, "(before post %d/%d)" % (k, len(todo_links)))
+                    log("  opening post %d/%d %s" % (k, len(todo_links), l))
                     pg.goto(l, wait_until="domcontentloaded", timeout=45000); pause(1, 2, "(render)")
                     t = pg.query_selector("time[datetime]")
                     dt = (t.get_attribute("datetime") if t else "")[:10]
                     og = lambda key: (pg.query_selector('meta[property="%s"]' % key).get_attribute("content") if pg.query_selector('meta[property="%s"]' % key) else "")
                     posts.append({"page": name, "post_url": l, "posted": dt, "caption": og("og:description")[:2500], "image": og("og:image"), "source": "instagram"})
                     log("    posted %s (%s days old)" % (dt or "?", age(dt) if dt else "?"))
-                    if not FIRST and dt:
+                    if not FIRST and not known_page and dt:
                         if age(dt) <= 1:
                             seen_recent = True
                         elif k >= 4 and not seen_recent:
@@ -138,12 +168,16 @@ def main():
                         elif k >= 4 and seen_recent and age(dt) > 1:
                             log("  post %d is old after a recent one -> stop this page" % k); break
                 posts.sort(key=lambda x: x["posted"], reverse=True)
-                for post in (posts if FIRST else posts[:3]):
+                for post in (posts if (FIRST or known_page) else posts[:3]):
                     row["posts"] += 1
-                    post["recent"] = bool(post["posted"]) and age(post["posted"]) <= 1
+                    if known_page:   # new to us: keep it unless clearly old (an old post that only reappeared in the grid)
+                        post["recent"] = (not post["posted"]) or age(post["posted"]) <= 7
+                    else:
+                        post["recent"] = bool(post["posted"]) and age(post["posted"]) <= 1
                     row["recent"] += post["recent"]
                     results.append(post)
-                row["status"] = "ok" if (row["recent"] or FIRST) else "no post today/yesterday"
+                row["status"] = "ok" if (row["recent"] or FIRST) else ("new posts, all old" if known_page else "no post today/yesterday")
+                SEEN[name] = list(dict.fromkeys([code(l) for l in links] + (seen_list or [])))[:60]; save_seen()
             except Exception as e:
                 row["status"] = "error: " + str(e)[:80]
                 log("  ERROR " + str(e)[:120])
