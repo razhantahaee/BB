@@ -305,17 +305,47 @@ $("calStrip").addEventListener("click",function(ev){
   var k=b.getAttribute("data-day"); st.day=(st.day===k?"":k); if(st.day) st.when="all";
   render(); goEvents();
 });
-// ---------- soft flag-colour tint in the hero (per selected country) ----------
-// [angle, colours]; 180 = horizontal stripes (top→bottom), 90 = vertical (left→right). White bands are drawn very faint.
-var TINT={se:[90,["#006AA7","#FECC00"]],de:[180,["#000000","#DD0000","#FFCE00"]],gb:[90,["#012169","#FFFFFF","#C8102E"]],nl:[180,["#AE1C28","#FFFFFF","#21468B"]],no:[90,["#BA0C2F","#FFFFFF","#00205B"]],dk:[90,["#C8102E","#FFFFFF"]],fr:[90,["#0055A4","#FFFFFF","#EF4135"]],at:[180,["#ED2939","#FFFFFF","#ED2939"]],ch:[90,["#D52B1E","#FFFFFF"]],be:[90,["#000000","#FAE042","#ED2939"]],fi:[90,["#003580","#FFFFFF"]],it:[90,["#009246","#FFFFFF","#CE2B37"]],es:[180,["#AA151B","#F1BF00","#AA151B"]],tr:[90,["#E30A17","#FFFFFF"]],gr:[180,["#0D5EAF","#FFFFFF"]],cz:[90,["#11457E","#FFFFFF","#D7141A"]],ie:[90,["#169B62","#FFFFFF","#FF883E"]],pl:[180,["#FFFFFF","#DC143C"]],pt:[90,["#006600","#FF0000"]],hu:[180,["#CE2939","#FFFFFF","#477050"]],lu:[180,["#EF3340","#FFFFFF","#00A3E0"]]};
+// ---------- flag-colour tint in the hero (per selected country) ----------
+// seg = [colour, from%, to%]; colour "-" = transparent. White is drawn at half strength so the white text stays readable.
+function L(angle,segs){ return "linear-gradient("+angle+"deg,"+segs.map(function(g){ var c=g[0]==="-"?"transparent":(g[0]==="#FFFFFF"?"#FFFFFF80":g[0]); return c+" "+g[1]+"% "+g[2]+"%"; }).join(",")+")"; }
+function bands(angle,cols,w){ var n=cols.length, x=0; return [L(angle,cols.map(function(c,i){ var f=x, t=(w?x+w[i]:(i+1)*100/n); x=t; return [c,f,t]; }))]; }
+// Nordic-style cross: a vertical and a horizontal bar over a field. inner = optional second (inner) colour.
+function cross(field,bar,inner,vx,hx){ // vx/hx = [from,to] of the bar
+  var bV=[L(90,[["-",0,vx[0]],[bar,vx[0],vx[1]],["-",vx[1],100]])], bH=[L(180,[["-",0,hx[0]],[bar,hx[0],hx[1]],["-",hx[1],100]])], out=bH.concat(bV);
+  if(inner){ var m=function(r,k){ return [r[0]+(r[1]-r[0])*k, r[1]-(r[1]-r[0])*k]; }, iv=m(vx,.3), ih=m(hx,.3);
+    out=[L(180,[["-",0,ih[0]],[inner,ih[0],ih[1]],["-",ih[1],100]]),L(90,[["-",0,iv[0]],[inner,iv[0],iv[1]],["-",iv[1],100]])].concat(out); }
+  return out.concat([L(90,[[field,0,100]])]);
+}
+var TINT={
+  se:cross("#006AA7","#FECC00",null,[28,44],[38,62]),
+  no:cross("#BA0C2F","#FFFFFF","#00205B",[26,46],[36,64]),
+  dk:cross("#C8102E","#FFFFFF",null,[28,44],[38,62]),
+  fi:cross("#FFFFFF","#003580",null,[28,44],[38,62]),
+  gb:cross("#012169","#FFFFFF","#C8102E",[38,62],[36,64]),
+  ch:cross("#D52B1E","#FFFFFF",null,[42,58],[34,66]),
+  de:bands(180,["#000000","#DD0000","#FFCE00"]),
+  nl:bands(180,["#AE1C28","#FFFFFF","#21468B"]),
+  at:bands(180,["#ED2939","#FFFFFF","#ED2939"]),
+  hu:bands(180,["#CE2939","#FFFFFF","#477050"]),
+  lu:bands(180,["#EF3340","#FFFFFF","#00A3E0"]),
+  es:bands(180,["#AA151B","#F1BF00","#AA151B"],[25,50,25]),
+  gr:bands(180,["#0D5EAF","#FFFFFF","#0D5EAF","#FFFFFF","#0D5EAF","#FFFFFF","#0D5EAF","#FFFFFF","#0D5EAF"]),
+  pl:bands(180,["#FFFFFF","#DC143C"]),
+  fr:bands(90,["#0055A4","#FFFFFF","#EF4135"]),
+  it:bands(90,["#009246","#FFFFFF","#CE2B37"]),
+  be:bands(90,["#000000","#FAE042","#ED2939"]),
+  ie:bands(90,["#169B62","#FFFFFF","#FF883E"]),
+  pt:bands(90,["#006600","#FF0000"],[40,60]),
+  cz:[L(90,[["#11457E",0,30],["-",30,100]])].concat(bands(180,["#FFFFFF","#D7141A"])),
+  tr:["radial-gradient(circle at 38% 50%,#FFFFFFB0 0 13%,transparent 14%)",L(90,[["#E30A17",0,100]])]
+};
 var tintShown=null;
 function renderTint(){
   var el=$("flagTint"); if(!el||tintShown===st.country) return; tintShown=st.country;
   var t=TINT[st.country];
   el.style.opacity="0";
   if(!t) return;
-  var n=t[1].length, parts=t[1].map(function(c,i){ var a=(c==="#FFFFFF")?"80":"FF"; return c+a+" "+(i*100/n).toFixed(0)+"% "+((i+1)*100/n).toFixed(0)+"%"; });
-  setTimeout(function(){ el.style.background="linear-gradient("+t[0]+"deg,"+parts.join(",")+")"; el.style.opacity=".72"; },60);
+  setTimeout(function(){ el.style.background=t.join(","); el.style.opacity=".8"; },60);
 }
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
 function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); renderTint(); }
