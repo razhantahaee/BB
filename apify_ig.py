@@ -27,6 +27,7 @@ STATE_FILE = "apify_state.json"          # ignored by git (*_state.json): budget
 ACTOR = "apify~instagram-scraper"
 TOKEN = os.environ.get("APIFY_TOKEN", "")
 MONTHLY = int(os.environ.get("APIFY_MONTHLY_ITEMS", "1800"))
+EVERY = max(1, int(os.environ.get("APIFY_EVERY_DAYS", "3")))   # each existing page is asked once per EVERY days
 BATCH = 100                               # pages per Apify run
 DRY = "--dry" in sys.argv
 N = int(sys.argv[sys.argv.index("--n") + 1]) if "--n" in sys.argv else None
@@ -61,6 +62,8 @@ def code(link):
 def tier_due(info):
     """info = per-page memory or None. Returns True if the page should be asked today."""
     if not info: return True                              # new page
+    chk = info.get("checked")
+    if chk and (TODAY - datetime.date.fromisoformat(chk)).days < EVERY: return False   # asked recently (every 3 days)
     last = info.get("last_post")                           # YYYY-MM-DD of newest post we ever saw
     if not last: return TODAY.weekday() in (0, 3)          # never saw a post: Monday/Thursday
     days = (TODAY - datetime.date.fromisoformat(last)).days
@@ -103,10 +106,10 @@ def main():
     log("%d pages in list: %d new (baseline), %d daily, %d skipped by tier today" % (len(allp), len(todo_new), len(todo_daily), skipped))
     if DRY: log("dry run - nothing sent"); return
 
-    since = 1
+    since = EVERY
     if st.get("last_ok"):
         hours = (NOW - datetime.datetime.fromisoformat(st["last_ok"])).total_seconds() / 3600
-        since = max(1, min(7, math.ceil(hours / 24)))      # a missed day is covered by a wider window
+        since = max(EVERY, min(10, math.ceil(hours / 24)))      # a missed day is covered by a wider window
     seen_codes = {c for info in st["pages"].values() for c in info.get("seen", [])}
 
     posts, rows, spent, base_spent = [], [], 0, 0
