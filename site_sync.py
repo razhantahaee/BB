@@ -43,7 +43,7 @@ if __name__ == "__main__":
         rejected = {key(norm(x)[1]) for x in res["sources"] if x["status"] == "rejected"}
         add = {"instagram": [], "facebook": [], "website": []}
         for p, link in approved:
-            if p in add and "/groups/" not in link: add[p].append(link)
+            if p in add and not any(x in link for x in ("/groups/", "/search", "facebook.com/search")): add[p].append(link)
         out, sec, seen = [], "", set()
         def flush():
             for l in add.get(sec, []):
