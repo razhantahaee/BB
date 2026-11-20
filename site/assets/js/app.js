@@ -396,7 +396,7 @@ $("pending").addEventListener("click",async function(ev){
   try{
     if(b.getAttribute("data-pact")==="approve"){
       var d={title:e.title,date:e.date,time:e.time||"",venue:e.venue||"",city:e.city||"",country:String(e.country).toLowerCase(),price:e.price||"See ticket page",type:e.type||"both",url:e.url||"",source:e.source||"",organizer:e.organizer||"",addedAt:new Date().toISOString().slice(0,10)};
-      if(e.image) d.image=e.image;
+      if(safeImg(e.image)) d.image=e.image;
       await st.db.doc("events/"+id).set(d);
       await st.db.doc("pending/"+id).update({status:"approved",reviewedAt:new Date().toISOString()});
     } else await st.db.doc("pending/"+id).update({status:"rejected",reviewedAt:new Date().toISOString()});
