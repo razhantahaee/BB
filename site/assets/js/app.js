@@ -210,9 +210,9 @@ function renderGroups(){
     var cov=g.cover?'<img class="cover" src="'+esc(g.cover)+'" alt="" loading="lazy">':'';
     var avHtml=(!g.cover&&(g.logo||g.kind!=="زیرگروه"))?'<span class="av'+(g.logo?' logo':'')+'">'+avIn+'</span>':'';
     var kindHtml=(g.kind&&g.kind!=="زیرگروه")?'<span class="kind">'+esc(g.kind)+'</span>':'';
-    var descGo=(g.desc?'<p dir="auto">'+esc(g.desc)+'</p>':'')+
+    var descGo=(g.desc&&g.desc!==g.name?'<p dir="auto">'+esc(g.desc)+'</p>':'')+
       '';
-    var titleHtml='<h3 dir="auto">'+esc(g.name)+'</h3>'+(g.nameLatin&&g.nameLatin!==g.name?'<span class="gl">'+esc(g.nameLatin)+'</span>':'')+
+    var titleHtml='<h3 dir="auto">'+esc(g.name)+'</h3>'+(g.nameLatin&&g.nameLatin!==g.name&&!/^(https?:\/\/|www\.|[a-z0-9.-]+\.(com|me|org|net)\/)/i.test(g.nameLatin)?'<span class="gl">'+esc(g.nameLatin)+'</span>':'')+
       '<span class="gw">'+(FLAG[g.country]||'')+'<span>'+esc(place)+'</span>'+kindHtml+'</span>';
     var inner=cov+'<span class="grow">'+avHtml+'<span class="gb">'+titleHtml+descGo+'</span></span>';
     return url?'<div class="gcard '+cls+'" role="link" tabindex="0" data-go="'+esc(url)+'">'+inner+'</div>':'<div class="gcard '+cls+'">'+inner+'</div>';
@@ -226,7 +226,7 @@ function inGroups(src){ return st.groups.some(function(g){ return g.sourceId===s
 async function addToGroups(src){
   var h=String(src.handle||"").replace(/^https?:\/\/(www\.)?(instagram|facebook)\.com\//,"").replace(/^https?:\/\/(t|telegram)\.me\//,"").replace(/^@/,"").replace(/\/+$/,"");
   var type=src.type==="kurdish"?"kurdish":(src.type==="persian"||src.type==="afghan")?"persian":"both";
-  await st.db.doc("communities/"+gid(src)).set({name:src.note||h,nameLatin:h,kind:src.kind||"گروه",type:type,city:src.city||"",country:src.country||"all",url:src.url||"",platform:src.platform||"",desc:src.note||"",order:50,sourceId:src.id,logo:safeIcon(src.icon)||"",addedAt:new Date().toISOString().slice(0,10)});
+  await st.db.doc("communities/"+gid(src)).set({name:src.note||h,nameLatin:(src.platform==="whatsapp"||src.platform==="telegram"||src.platform==="website"?"":h),kind:src.kind||"گروه",type:type,city:src.city||"",country:src.country||"all",url:src.url||"",platform:src.platform||"",desc:src.note||"",order:50,sourceId:src.id,logo:safeIcon(src.icon)||"",addedAt:new Date().toISOString().slice(0,10)});
 }
 
 // ---------- admin & submissions ----------
