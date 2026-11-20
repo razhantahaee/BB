@@ -254,3 +254,8 @@ footer p{max-width:60ch;margin:6px 0 0}
 .calday.today{border-color:var(--green)}
 .calday.on{background:var(--green-l);border-color:var(--green-d);box-shadow:0 0 0 2px var(--green-l)}
 .calday:focus-visible{outline:2px solid var(--green-d);outline-offset:2px}
+
+.calbar.in-hero{background:none;border:0;padding:0;margin:18px auto 4px;max-width:900px;text-align:start}
+.calbar.in-hero .calhead b{color:#fff}
+.calbar.in-hero .calhead span{color:rgba(255,255,255,.75)}
+.calbar.in-hero .calstrip{justify-content:flex-start}
