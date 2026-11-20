@@ -70,9 +70,10 @@ function feedKey($platform, $h) {
   $h = preg_replace('#[?\#].*$#', '', $h);
   $h = rtrim($h, '/');
   if (preg_match('#^(chat\.whatsapp\.com|whatsapp\.com/(?:channel|invite|c)|wa\.me)/(.+)$#', $h, $m)) { $platform = 'whatsapp'; $h = explode('/', $m[2])[0]; }
+  elseif (preg_match('#^(t\.me|telegram\.me|telegram\.dog)/(.+)$#', $h, $m)) { $platform = 'telegram'; $seg = explode('/', $m[2]); $h = (in_array($seg[0], ['joinchat', 's'], true) && isset($seg[1])) ? $seg[1] : $seg[0]; }
   elseif (preg_match('#^(instagram\.com|instagr\.am)/(.+)$#', $h, $m)) { $platform = 'instagram'; $h = explode('/', $m[2])[0]; }
   elseif (preg_match('#^(facebook\.com|fb\.com)/(.+)$#', $h, $m)) { $platform = 'facebook'; $seg = explode('/', $m[2]); $h = ($seg[0] === 'groups' && isset($seg[1])) ? 'groups/' . $seg[1] : $seg[0]; }
-  elseif ($platform === 'website' || strpos($h, '.') !== false && strpos($h, ' ') === false && $platform !== 'instagram' && $platform !== 'facebook' && $platform !== 'whatsapp') { $platform = 'website'; $h = explode('/', $h)[0]; }
+  elseif ($platform === 'website' || strpos($h, '.') !== false && strpos($h, ' ') === false && $platform !== 'instagram' && $platform !== 'facebook' && $platform !== 'whatsapp' && $platform !== 'telegram') { $platform = 'website'; $h = explode('/', $h)[0]; }
   $h = ltrim($h, '@');
   return $platform . ':' . $h;
 }
@@ -264,7 +265,7 @@ switch ($op) {
     // عمومی: آیا این صفحه/سایت قبلاً پیگیری می‌شود، قبلاً بررسی شده، یا در انتظار بررسی است؟ فقط وضعیت را برمی‌گرداند، نه فهرست را.
     $platform = (string)($_GET['platform'] ?? $in['platform'] ?? '');
     $handle = (string)($_GET['handle'] ?? $in['handle'] ?? '');
-    if (!in_array($platform, ['instagram', 'facebook', 'website', 'whatsapp'], true) || strlen(trim($handle)) < 2 || strlen($handle) > 300) fail(400, 'bad input');
+    if (!in_array($platform, ['instagram', 'facebook', 'website', 'whatsapp', 'telegram'], true) || strlen(trim($handle)) < 2 || strlen($handle) > 300) fail(400, 'bad input');
     $key = feedKey($platform, $handle);
     $pdo = pdo();
     $status = 'new';

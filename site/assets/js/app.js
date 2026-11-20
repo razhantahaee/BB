@@ -44,7 +44,7 @@ function typeFromWord(q){
   if(PERS.some(function(w){return q.indexOf(w)===0||w.indexOf(q)===0;})) return "persian";
   return null;
 }
-function normH(v){ return String(v||"").toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^(chat\.whatsapp\.com|whatsapp\.com\/(channel|invite|c)|wa\.me)\//,"").replace(/^@/,"").replace(/[\/?#].*$/,"").trim(); }
+function normH(v){ return String(v||"").toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^(chat\.whatsapp\.com|whatsapp\.com\/(channel|invite|c)|wa\.me|t\.me|telegram\.me)\//,"").replace(/^@/,"").replace(/[\/?#].*$/,"").trim(); }
 function eventsFor(src){
   var key=normH(src.handle);
   return st.events.filter(function(e){
@@ -223,13 +223,13 @@ $("grChips").addEventListener("click",function(ev){ var b=ev.target.closest(".ch
 function gid(src){ return String(src.id||"").replace(/^(instagram|facebook|website)-/,"").replace(/[^a-z0-9._-]+/gi,"-").toLowerCase().slice(0,120)||("g"+Date.now()); }
 function inGroups(src){ return st.groups.some(function(g){ return g.sourceId===src.id || (safeUrl(g.url)&&normH(g.url)===normH(src.url)); }); }
 async function addToGroups(src){
-  var h=String(src.handle||"").replace(/^https?:\/\/(www\.)?(instagram|facebook)\.com\//,"").replace(/^@/,"").replace(/\/+$/,"");
+  var h=String(src.handle||"").replace(/^https?:\/\/(www\.)?(instagram|facebook)\.com\//,"").replace(/^https?:\/\/(t|telegram)\.me\//,"").replace(/^@/,"").replace(/\/+$/,"");
   var type=src.type==="kurdish"?"kurdish":(src.type==="persian"||src.type==="afghan")?"persian":"both";
   await st.db.doc("communities/"+gid(src)).set({name:src.note||h,nameLatin:h,kind:src.kind||"گروه",type:type,city:src.city||"",country:src.country||"all",url:src.url||"",platform:src.platform||"",desc:src.note||"",order:50,sourceId:src.id,addedAt:new Date().toISOString().slice(0,10)});
 }
 
 // ---------- admin & submissions ----------
-function keyFor(p,h){ return (p+"-"+String(h).toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^(chat\.whatsapp\.com|whatsapp\.com\/(channel|invite|c)|wa\.me)\//,"").replace(/[?#].*$/,"").replace(/^@/,"").replace(/\/+$/,"").replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"")).slice(0,180); }
+function keyFor(p,h){ return (p+"-"+String(h).toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^(chat\.whatsapp\.com|whatsapp\.com\/(channel|invite|c)|wa\.me|t\.me|telegram\.me)\//,"").replace(/[?#].*$/,"").replace(/^@/,"").replace(/\/+$/,"").replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"")).slice(0,180); }
 function decided(k){ return st.sources.find(function(s){return s.id===k;}); }
 function renderSources(){
   var el=$("sources"); if(!st.canEdit||!el) return;
@@ -424,9 +424,10 @@ function normUrl(p,h){
   if(p==="instagram") return "https://www.instagram.com/"+encodeURIComponent(x)+"/";
   if(p==="facebook") return "https://www.facebook.com/"+encodeURIComponent(x);
   if(p==="whatsapp") return "https://chat.whatsapp.com/"+encodeURIComponent(x);
+  if(p==="telegram") return "https://t.me/"+encodeURIComponent(x);
   return "https://"+x;
 }
-$("sPlatform").addEventListener("change",function(){ var w=this.value==="whatsapp"; $("sHandle").placeholder=w?"https://chat.whatsapp.com/… or https://whatsapp.com/channel/…":"@organizer or https://instagram.com/organizer"; });
+$("sPlatform").addEventListener("change",function(){ var PH={whatsapp:"https://chat.whatsapp.com/… or https://whatsapp.com/channel/…",telegram:"@channel or https://t.me/channel",facebook:"https://facebook.com/pagename",website:"https://example.com"}; $("sHandle").placeholder=PH[this.value]||"@organizer or https://instagram.com/organizer"; });
 $("subForm").addEventListener("submit",async function(ev){
   ev.preventDefault();
   var msg=$("sMsg"), fb=$("sFallback");
