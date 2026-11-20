@@ -16,7 +16,7 @@ done < "$ENVF"
 command -v lftp >/dev/null || { echo "install lftp:  sudo apt install lftp"; exit 1; }
 DRY=""; [ "${1:-}" = "--dry" ] && DRY="--dry-run"
 # never overwrite/delete on the server: config.php (secrets), uploads (user icons)
-lftp -u "$STRATO_USER","$STRATO_PASS" "sftp://$STRATO_HOST" <<EOF
+lftp -u "$STRATO_USER","$STRATO_PASS" "sftp://$STRATO_HOST" 2>&1 <<EOF | sed -E 's#sftp://[^@ ]*@#sftp://***@#g'
 set sftp:auto-confirm yes
 set net:max-retries 2
 set net:timeout 20
