@@ -256,6 +256,7 @@ function renderMine(){
   }).join("")+'</ul>';
 }
 function renderQueue(){
+  renderAdm();
   var panel=$("adminPanel");
   panel.hidden=!st.canEdit; if(!st.canEdit) return;
   var pend=[];
@@ -268,6 +269,7 @@ function renderQueue(){
 }
 
 function renderPending(){
+  renderAdm();
   var el=$("pending"); if(!el||!st.canEdit) return;
   var list=st.pending.filter(function(e){return e.status==="pending";}).sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
   $("pendN").textContent="("+faNum(list.length)+")";
@@ -360,7 +362,7 @@ function renderRemoved(){
   }).join("");
 }
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
-function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); renderTint(); renderRemoved(); }
+function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderAdm(); renderCal(); renderTint(); renderRemoved(); }
 
 // ---------- city skyline in the hero ----------
 (function(){
@@ -492,7 +494,7 @@ $("subForm").addEventListener("submit",async function(ev){
 });
 
 // ---------- admin actions ----------
-$("queue").addEventListener("click",async function(ev){
+async function onQueueClick(ev){
   var b=ev.target.closest("button[data-act]"); if(!b||!st.db) return;
   var k=b.getAttribute("data-k"), it=null;
   st.subs.forEach(function(d){(d.items||[]).forEach(function(x){if(x.key===k)it=x;});});
@@ -505,8 +507,9 @@ $("queue").addEventListener("click",async function(ev){
     if(act==="approve-group"){ src.id=k; await addToGroups(src); }
   }
   catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
-});
-$("pending").addEventListener("click",async function(ev){
+}
+$("queue").addEventListener("click",onQueueClick);
+async function onPendingClick(ev){
   var b=ev.target.closest("button[data-pact]"); if(!b||!st.db) return;
   var id=b.getAttribute("data-id"), e=st.pending.find(function(x){return x.id===id;}); if(!e) return;
   b.disabled=true;
@@ -521,8 +524,9 @@ $("pending").addEventListener("click",async function(ev){
       await st.db.doc("pending/"+id).update({status:"approved",reviewedAt:new Date().toISOString()});
     } else await st.db.doc("pending/"+id).update({status:"rejected",reviewedAt:new Date().toISOString()});
   }catch(err){ b.disabled=false; b.textContent="خطا، دوباره"; }
-});
-$("sources").addEventListener("click",async function(ev){
+}
+$("pending").addEventListener("click",onPendingClick);
+async function onSourcesClick(ev){
   var o=ev.target.closest("button[data-open]");
   if(o){ var id0=o.getAttribute("data-open"); st.openSrc=(st.openSrc===id0?null:id0); renderSources(); return; }
   var ag=ev.target.closest("button[data-addgroup]");
@@ -530,12 +534,14 @@ $("sources").addEventListener("click",async function(ev){
   var b=ev.target.closest("button[data-stop]"); if(!b||!st.db) return;
   b.disabled=true;
   try{ await st.db.doc("sources/"+b.getAttribute("data-stop")).update({status:"rejected",reviewedAt:new Date().toISOString()}); }catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
-});
-$("removed").addEventListener("click",async function(ev){
+}
+$("sources").addEventListener("click",onSourcesClick);
+async function onRemovedClick(ev){
   var b=ev.target.closest("button[data-restore]"); if(!b||!st.db) return;
   b.disabled=true;
   try{ await st.db.doc("sources/"+b.getAttribute("data-restore")).update({status:"approved",reviewedAt:new Date().toISOString()}); }catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
-});
+}
+$("removed").addEventListener("click",onRemovedClick);
 $("contactForm").addEventListener("submit",async function(ev){
   ev.preventDefault(); if(!st.db) return;
   var v=$("contact").value.trim().slice(0,120);
@@ -576,4 +582,96 @@ render();
   },function(){});
   db.doc("config/site").onSnapshot(function(d){ st.contact=d.exists?(d.data().contact||""):""; renderQueue(); },function(){});
 })();
+})();
+
+// ---------- unified admin table ----------
+var ADM={plat:"all",kind:"all",status:"all",country:"all",q:"",limit:60};
+var PLAT_NAME={instagram:"Instagram",facebook:"Facebook",website:"وب‌سایت",whatsapp:"WhatsApp",telegram:"Telegram"};
+function platformOf(url,fb){
+  var u=String(url||"").toLowerCase(), f=String(fb||"").toLowerCase();
+  if(/instagram\.com/.test(u)||f==="instagram") return "instagram";
+  if(/facebook\.com|fb\.com/.test(u)||f==="facebook") return "facebook";
+  if(/whatsapp\.com|wa\.me/.test(u)||f==="whatsapp") return "whatsapp";
+  if(/(^|\/\/)(t|telegram)\.me/.test(u)||f==="telegram") return "telegram";
+  return u?"website":(f||"website");
+}
+function admRows(){
+  var rows=[], t=todayISO();
+  st.subs.forEach(function(d){ (d.items||[]).forEach(function(it){ if(decided(it.key)) return;
+    rows.push({k:"s:"+it.key,kind:it.kind||"صفحه",plat:platformOf(it.url,it.platform),name:it.note||it.handle,sub:it.handle,country:it.country||"all",city:it.city||"",url:it.url,status:"pending",
+      act:'<button class="btn small ok" data-act="approve" data-k="'+esc(it.key)+'">تأیید</button><button class="btn small ghost" data-act="approve-group" data-k="'+esc(it.key)+'">تأیید + گروه‌ها</button><button class="btn small no" data-act="reject" data-k="'+esc(it.key)+'">رد</button>'}); }); });
+  st.pending.filter(function(e){return e.status==="pending";}).forEach(function(e){
+    var ok=/^\d{4}-\d{2}-\d{2}$/.test(e.date||"")&&e.title&&/^[a-z]{2}$/i.test(e.country||"");
+    rows.push({k:"p:"+e.id,kind:"ایونت",plat:platformOf(e.url,e.source),name:e.title,sub:[e.date,e.city].filter(Boolean).join(" · "),country:String(e.country||"all").toLowerCase(),city:e.city||"",url:e.url,status:"pending",
+      act:'<button class="btn small ok" data-pact="approve" data-id="'+esc(e.id)+'"'+(ok?'':' disabled')+'>تأیید</button><button class="btn small no" data-pact="reject" data-id="'+esc(e.id)+'">رد</button>'}); });
+  st.sources.forEach(function(s){
+    if(s.status==="approved") rows.push({k:"a:"+s.id,kind:s.kind||"صفحه",plat:platformOf(s.url,s.platform),name:s.note||s.handle,sub:s.handle,country:s.country||"all",city:s.city||"",url:s.url,status:"active",
+      act:(inGroups(s)?'':'<button class="btn small ghost" data-addgroup="'+esc(s.id)+'">به گروه‌ها</button>')+'<button class="btn small no" data-stop="'+esc(s.id)+'">حذف / توقف</button>'});
+    else if(s.status==="rejected") rows.push({k:"r:"+s.id,kind:s.kind||"صفحه",plat:platformOf(s.url,s.platform),name:s.note||s.handle,sub:s.handle,country:s.country||"all",city:s.city||"",url:s.url,status:"removed",
+      act:'<button class="btn small ok" data-restore="'+esc(s.id)+'">بازگرداندن</button>'}); });
+  st.groups.forEach(function(g){ if(g.sourceId&&st.sources.some(function(s){return s.id===g.sourceId;})) return;
+    rows.push({k:"g:"+g.id,kind:"گروه",plat:platformOf(g.url,g.platform),name:g.name,sub:g.nameLatin||"",country:g.country||"all",city:g.city||"",url:g.url,status:"active",
+      act:'<button class="btn small no" data-delgrp="'+esc(g.id)+'">حذف</button>'}); });
+  st.events.forEach(function(e){
+    rows.push({k:"e:"+e.id,kind:"ایونت",plat:platformOf(e.url,e.source),name:e.title,sub:[e.date,e.city].filter(Boolean).join(" · "),country:e.country||"all",city:e.city||"",url:e.url,status:"active",past:(e.endDate||e.date)<t,
+      act:'<button class="btn small no" data-delev="'+esc(e.id)+'">حذف</button>'}); });
+  return rows;
+}
+var STAT_FA={pending:"در انتظار",active:"فعال",removed:"حذف‌شده"};
+var admT=0;
+function renderAdm(){ if(admT) return; admT=requestAnimationFrame(function(){ admT=0; renderAdmNow(); }); }
+function renderAdmNow(){
+  var box=$("admTable"); if(!box||!st.canEdit) return;
+  var all=admRows();
+  function cnt(f){ var m={}; all.forEach(function(r){ var v=f(r); m[v]=(m[v]||0)+1; }); return m; }
+  var pc=cnt(function(r){return r.plat;}), kc=cnt(function(r){return r.kind;}), cc=cnt(function(r){return r.country;}), sc=cnt(function(r){return r.status;});
+  function opts(m,cur,label,allTxt){ return '<option value="all">'+allTxt+' ('+faNum(all.length)+')</option>'+Object.keys(m).sort().map(function(k){ return '<option value="'+esc(k)+'"'+(cur===k?' selected':'')+'>'+esc(label(k))+' ('+faNum(m[k])+')</option>'; }).join(""); }
+  var rows=all.filter(function(r){
+    return (ADM.plat==="all"||r.plat===ADM.plat)&&(ADM.kind==="all"||r.kind===ADM.kind)&&(ADM.status==="all"||r.status===ADM.status)&&(ADM.country==="all"||r.country===ADM.country)&&
+      (!ADM.q||(r.name+" "+r.sub+" "+r.city+" "+(r.url||"")).toLowerCase().indexOf(ADM.q)>=0);
+  });
+  var ord={pending:0,active:1,removed:2};
+  rows.sort(function(a,b){ return ord[a.status]-ord[b.status] || String(a.kind).localeCompare(String(b.kind)) || String(a.name).localeCompare(String(b.name)); });
+  var shown=rows.slice(0,ADM.limit);
+  var focus=document.activeElement&&document.activeElement.id;
+  var head='<div class="admbar">'+
+    '<label class="field"><span>پلتفرم</span><select id="admPlat">'+opts(pc,ADM.plat,function(k){return PLAT_NAME[k]||k;},"همه پلتفرم‌ها")+'</select></label>'+
+    '<label class="field"><span>نوع</span><select id="admKind">'+opts(kc,ADM.kind,function(k){return k;},"همه نوع‌ها")+'</select></label>'+
+    '<label class="field"><span>وضعیت</span><select id="admStatus">'+opts(sc,ADM.status,function(k){return STAT_FA[k];},"همه وضعیت‌ها")+'</select></label>'+
+    '<label class="field"><span>کشور</span><select id="admCountry">'+opts(cc,ADM.country,function(k){return k==="all"?"همه کشورها":(NAME[k]||k.toUpperCase());},"همه کشورها")+'</select></label>'+
+    '<label class="field grow"><span>جست‌وجو</span><input id="admQ" type="search" placeholder="نام، شهر، لینک…" value="'+esc(ADM.q)+'"></label></div>'+
+    '<div class="admsum">'+Object.keys(kc).sort().map(function(k){return '<span class="admchip">'+esc(k)+': <b>'+faNum(kc[k])+'</b></span>';}).join("")+'<span class="admchip warn">در انتظار: <b>'+faNum(sc.pending||0)+'</b></span><span class="admchip">نمایش: <b>'+faNum(rows.length)+'</b></span></div>';
+  var body=shown.length? '<div class="admwrap"><table class="adm"><thead><tr><th>#</th><th>نوع</th><th>نام</th><th>پلتفرم</th><th>کشور</th><th>وضعیت</th><th>عملیات</th><th>لینک</th></tr></thead><tbody>'+shown.map(function(r,i){
+    var u=safeUrl(r.url), host=""; try{ host=new URL(u).hostname.replace(/^www\./,""); }catch(e){}
+    return '<tr class="st-'+r.status+(r.past?' past':'')+'"><td data-l="#">'+faNum(i+1)+'</td><td data-l="نوع"><span class="kindtag">'+esc(r.kind)+'</span></td>'+
+      '<td data-l="نام"><b>'+esc(r.name||"—")+'</b>'+(r.sub?'<div class="sm ltr" style="text-align:start">'+esc(r.sub)+'</div>':'')+'</td>'+
+      '<td data-l="پلتفرم">'+esc(PLAT_NAME[r.plat]||r.plat)+'</td>'+
+      '<td data-l="کشور">'+esc(r.country==="all"?"همه کشورها":(NAME[r.country]||r.country.toUpperCase()))+(r.city?'<div class="sm">'+esc(r.city)+'</div>':'')+'</td>'+
+      '<td data-l="وضعیت"><span class="stat s-'+r.status+'">'+STAT_FA[r.status]+(r.past?' · گذشته':'')+'</span></td>'+
+      '<td data-l="عملیات" class="actc"><div class="act">'+r.act+'</div></td>'+
+      '<td data-l="لینک">'+(u?'<a class="ltr" href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(host||"باز کردن")+' ↗</a>':'<span class="sm">—</span>')+'</td></tr>';
+  }).join("")+'</tbody></table></div>'+(rows.length>shown.length?'<button class="btn ghost small" id="admMore" type="button">نمایش بیشتر ('+faNum(rows.length-shown.length)+')</button>':'')
+   : '<div class="empty">موردی پیدا نشد.</div>';
+  box.innerHTML=head+body;
+  if(focus==="admQ"){ var q=$("admQ"); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
+}
+(function(){
+  var box=$("admTable"); if(!box) return;
+  box.addEventListener("change",function(ev){
+    var m={admPlat:"plat",admKind:"kind",admStatus:"status",admCountry:"country"}[ev.target.id]; if(!m) return;
+    ADM[m]=ev.target.value; ADM.limit=60; renderAdm();
+  });
+  box.addEventListener("input",function(ev){ if(ev.target.id!=="admQ") return; ADM.q=ev.target.value.trim().toLowerCase(); ADM.limit=60; renderAdm(); });
+  box.addEventListener("click",async function(ev){
+    if(ev.target.closest("#admMore")){ ADM.limit+=60; renderAdm(); return; }
+    var b=ev.target.closest("button"); if(!b||!st.db) return;
+    var de=b.getAttribute("data-delev"), dg=b.getAttribute("data-delgrp");
+    if(de||dg){
+      if(!confirm("این مورد برای همیشه حذف شود؟")) return;
+      b.disabled=true;
+      try{ await st.db.doc((de?"events/"+de:"communities/"+dg)).delete(); }catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
+      return;
+    }
+    await onQueueClick(ev); await onPendingClick(ev); await onSourcesClick(ev); await onRemovedClick(ev);
+  });
 })();

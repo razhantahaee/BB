@@ -53,6 +53,7 @@
         return makeDoc(j.exists ? j.data : null);
       },
       async set(data) { await call('write', {}, { path: path, mode: 'set', data: data, uid: uid }); refreshAll(); },
+      async delete() { await call('delete', {}, { path: path, uid: uid }); refreshAll(); },
       async merge(data) { await call('write', {}, { path: path, mode: 'merge', data: data, uid: uid }); refreshAll(); },
       async update(data) { await call('write', {}, { path: path, mode: 'update', data: data, uid: uid }); refreshAll(); },
       onSnapshot(cb, errCb) {

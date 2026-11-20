@@ -175,8 +175,10 @@
       </div>
 
       <div class="panel" id="adminPanel" hidden style="margin-top:28px">
-        <h2>Admin · صف بررسی</h2>
-        <p class="sub">فقط شما و ویرایشگرها این بخش را می‌بینید. صفحه‌ی تأییدشده هر روز بررسی می‌شود.</p>
+        <h2>Admin · مدیریت</h2>
+        <p class="sub">همه‌ی ایونت‌ها، گروه‌ها و صفحه‌ها در یک جدول. با فیلتر پلتفرم، نوع، وضعیت و کشور پیدا کن، تأیید یا حذف کن.</p>
+        <div id="admTable"></div>
+        <div hidden>
         <div class="queue" id="queue"></div>
         <h2 style="margin-top:28px;font-size:19px">برنامه‌های پیشنهادی ربات <span id="pendN" style="color:var(--muted);font-weight:500;font-size:15px"></span></h2>
         <p class="sub">هر روز ساعت ۶ صبح پیدا می‌شوند. تا تأیید نکنی روی سایت نمی‌آیند.</p>
@@ -184,15 +186,18 @@
         <h2 style="margin-top:28px;font-size:19px">صفحه‌های تحت پیگیری <span id="trackedN" style="color:var(--muted);font-weight:500;font-size:15px"></span></h2>
         <p class="sub">روی دکمه‌ی هر صفحه بزن تا برنامه‌های مربوط به آن را ببینی.</p>
         <ul class="sources" id="sources"></ul>
+        </div>
         <h2 style="margin-top:28px;font-size:19px">راه تماس برای بازدیدکنندگان</h2>
         <p class="sub">بازدیدکننده‌هایی که نمی‌توانند مستقیم ارسال کنند، درخواستشان را برای این آدرس می‌فرستند.</p>
         <form id="contactForm" class="row2" style="align-items:end">
           <label class="field"><span>ایمیل یا اینستاگرام</span><input id="contact" class="ltr" placeholder="@yourpage or you@example.com"></label>
           <button class="btn ghost" type="submit">ذخیره</button>
         </form>
+        <div hidden>
         <h2 style="margin-top:28px;font-size:19px">صفحه‌های حذف‌شده <span id="removedN" style="color:var(--muted);font-weight:500;font-size:15px"></span></h2>
         <p class="sub">صفحه‌هایی که پیگیری‌شان را متوقف کردی یا رد کردی. دیگر بررسی نمی‌شوند. با «بازگرداندن» دوباره پیگیری می‌شوند.</p>
         <ul class="sources" id="removed"></ul>
+        </div>
       </div>
     </div>
   </section>

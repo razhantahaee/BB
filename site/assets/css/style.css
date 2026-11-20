@@ -340,3 +340,32 @@ button,select,a.btn,.chip,.flag,.calday{touch-action:manipulation}
   .rail{grid-auto-columns:86%}
   .logo b{font-size:17px}
 }
+
+/* ---- admin table ---- */
+.admbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(0,1.4fr);gap:10px;margin-bottom:10px}
+.admbar .field select,.admbar .field input{width:100%}
+.admsum{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.admchip{background:var(--paper2);border-radius:999px;padding:3px 12px;font-size:13px;color:var(--ink2)}
+.admchip.warn{background:#FBE9C8}
+.admwrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table.adm{width:100%;border-collapse:collapse;font-size:14px}
+table.adm th{position:sticky;top:0;background:var(--paper2);text-align:start;padding:9px 10px;font-size:12.5px;color:var(--muted);white-space:nowrap}
+table.adm td{padding:9px 10px;border-top:1px solid var(--line);vertical-align:top}
+table.adm tr.st-pending td{background:#FFF9EA}
+table.adm tr.st-removed td,table.adm tr.past td{opacity:.6}
+table.adm .act{display:flex;flex-wrap:wrap;gap:6px}
+.kindtag{background:var(--green-l);color:var(--green-d);border-radius:8px;padding:1px 8px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.stat{font-size:12.5px;font-weight:700;white-space:nowrap}
+.stat.s-pending{color:#A66A00}.stat.s-active{color:var(--green)}.stat.s-removed{color:#C0392B}
+@media (max-width:900px){ .admbar{grid-template-columns:repeat(2,minmax(0,1fr))} .admbar .grow{grid-column:1/-1} }
+@media (max-width:720px){
+  .admwrap{border:0;overflow:visible}
+  table.adm,table.adm tbody,table.adm tr,table.adm td{display:block;width:100%}
+  table.adm thead{display:none}
+  table.adm tr{border:1px solid var(--line);border-radius:14px;margin-bottom:10px;padding:6px 4px;background:var(--card)}
+  table.adm td{border:0;display:flex;justify-content:space-between;gap:12px;padding:5px 10px}
+  table.adm td::before{content:attr(data-l);color:var(--muted);font-size:12.5px;flex:0 0 auto}
+  table.adm td[data-l="#"]{display:none}
+  table.adm td.actc .act{justify-content:flex-end}
+  table.adm td.actc .btn{width:auto}
+}
