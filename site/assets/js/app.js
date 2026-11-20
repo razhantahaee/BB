@@ -164,6 +164,8 @@ function renderList(){
   var rows=visible();
   $("count").textContent=faNum(rows.length)+" برنامه";
   if(!rows.length){ el.innerHTML='<div class="empty">با این فیلترها برنامه‌ای پیدا نشد. صفحه‌ای می‌شناسی که برنامه می‌گذارد؟ <a href="#add">اضافه‌اش کن</a>.</div>'; return; }
+  var sig=rows.length+"|"+(rows[0]&&rows[0].id); if(sig!==st._sig){ st._sig=sig; st._lim=36; }
+  var total=rows.length; if(total>st._lim) rows=rows.slice(0,st._lim);
   var html="", cur="", buf=[];
   var ongoing=rows.filter(function(e){return e.ongoing;}), dated=rows.filter(function(e){return !e.ongoing;});
   if(ongoing.length) html+='<div class="month">برنامه‌های جاری و هفتگی</div><div class="grid">'+ongoing.map(card).join("")+'</div>';
@@ -173,8 +175,23 @@ function renderList(){
     buf.push(card(e));
   });
   if(buf.length) html+='<div class="grid">'+buf.join("")+'</div>';
+  if(total>rows.length) html+='<div class="loadmore"><button type="button" class="btn ghost" id="moreEv">نمایش بیشتر · '+faNum(total-rows.length)+' برنامه‌ی دیگر</button></div>';
   el.innerHTML=html;
 }
+$("list").addEventListener("click",function(ev){ if(ev.target.closest("#moreEv")){ st._lim=(st._lim||36)+36; renderList(); } });
+(function(){ // compact header while scrolling down, back-to-top button
+  var h=document.querySelector(".site-header"), t=$("toTop"), last=0, tick=false;
+  window.addEventListener("scroll",function(){
+    if(tick) return; tick=true;
+    requestAnimationFrame(function(){
+      var y=window.scrollY||0;
+      if(h){ if(y>140&&y>last+4) h.classList.add("compact"); else if(y<last-4||y<60) h.classList.remove("compact"); }
+      if(t) t.classList.toggle("show",y>700);
+      last=y; tick=false;
+    });
+  },{passive:true});
+  if(t) t.addEventListener("click",function(){ window.scrollTo({top:0,behavior:"smooth"}); });
+})();
 function renderNav(){
   document.querySelectorAll("#nav button[data-nav]").forEach(function(b){
     var k=b.getAttribute("data-nav"), on=false;
