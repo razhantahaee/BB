@@ -349,6 +349,16 @@ $("subForm").addEventListener("submit",async function(ev){
   var p=$("sPlatform").value, h=$("sHandle").value.trim();
   if(h.length<2){ msg.className="msg bad"; msg.textContent="آیدی یا لینک صفحه را وارد کن."; return; }
   var it={key:keyFor(p,h),platform:p,handle:h,url:normUrl(p,h),country:$("sCountry").value,city:$("sCity").value.trim().slice(0,80),type:$("sType").value,kind:$("sKind").value,note:$("sNote").value.trim().slice(0,240),at:new Date().toISOString()};
+  if(st.db&&st.db.checkFeed){
+    var sb=$("sBtn"); sb.disabled=true; msg.className="msg"; msg.textContent="در حال بررسی…";
+    var chk=null; try{ chk=await st.db.checkFeed(p,h); }catch(e){}
+    sb.disabled=false;
+    if(chk&&chk.exists){
+      var TXT={tracked:"این صفحه همین الان هر روز پیگیری می‌شود؛ نیازی به ارسال دوباره نیست ✓",group:"این صفحه قبلاً در بخش «گروه‌ها و انجمن‌ها» هست ✓",pending:"این صفحه قبلاً فرستاده شده و منتظر بررسی ادمین است.",declined:"این صفحه قبلاً بررسی شده و به لیست پیگیری اضافه نشده."};
+      msg.className="msg good"; msg.textContent=TXT[chk.status]||TXT.tracked; return;
+    }
+    msg.textContent="";
+  }
   if(st.canEdit && decided(it.key)){ msg.className="msg good"; msg.textContent=decided(it.key).status==="approved"?"این صفحه همین الان هم پیگیری می‌شود.":"این صفحه قبلاً بررسی شده و اضافه نشده."; return; }
   if(st.db&&st.uid&&st.canWrite!==false){
     var btn=$("sBtn"); btn.disabled=true;

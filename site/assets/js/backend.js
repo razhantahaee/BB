@@ -82,7 +82,8 @@
 
   var db = {
     collection: function (name) { return collRef(name); },
-    doc: function (path) { return docRef(path); }
+    doc: function (path) { return docRef(path); },
+    checkFeed: async function (platform, handle) { return call('checkfeed', { platform: platform, handle: handle }); }
   };
 
   var adminCache = null;

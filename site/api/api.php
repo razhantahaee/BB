@@ -62,6 +62,20 @@ function canRead($path, $uid) {
   return false;
 }
 
+// یکسان‌سازی آیدی/لینک صفحه برای تشخیص تکراری بودن: instagram:handle، facebook:handle یا groups/id، website:host
+function feedKey($platform, $h) {
+  $h = mb_strtolower(trim((string)$h));
+  $h = preg_replace('#^https?://#', '', $h);
+  $h = preg_replace('#^(www|m|mobile|web|l)\.#', '', $h);
+  $h = preg_replace('#[?\#].*$#', '', $h);
+  $h = rtrim($h, '/');
+  if (preg_match('#^(instagram\.com|instagr\.am)/(.+)$#', $h, $m)) { $platform = 'instagram'; $h = explode('/', $m[2])[0]; }
+  elseif (preg_match('#^(facebook\.com|fb\.com)/(.+)$#', $h, $m)) { $platform = 'facebook'; $seg = explode('/', $m[2]); $h = ($seg[0] === 'groups' && isset($seg[1])) ? 'groups/' . $seg[1] : $seg[0]; }
+  elseif ($platform === 'website' || strpos($h, '.') !== false && strpos($h, ' ') === false && $platform !== 'instagram' && $platform !== 'facebook') { $platform = 'website'; $h = explode('/', $h)[0]; }
+  $h = ltrim($h, '@');
+  return $platform . ':' . $h;
+}
+
 $op = $_GET['op'] ?? '';
 $raw = file_get_contents('php://input');
 $in = $raw ? (json_decode($raw, true) ?: []) : [];
@@ -242,6 +256,36 @@ switch ($op) {
       $known[$id] = 1; $added++;
     }
     out(['ok' => true, 'added' => $added, 'skipped' => $skipped]);
+  }
+
+  case 'checkfeed': {
+    // عمومی: آیا این صفحه/سایت قبلاً پیگیری می‌شود، قبلاً بررسی شده، یا در انتظار بررسی است؟ فقط وضعیت را برمی‌گرداند، نه فهرست را.
+    $platform = (string)($_GET['platform'] ?? $in['platform'] ?? '');
+    $handle = (string)($_GET['handle'] ?? $in['handle'] ?? '');
+    if (!in_array($platform, ['instagram', 'facebook', 'website'], true) || strlen(trim($handle)) < 2 || strlen($handle) > 300) fail(400, 'bad input');
+    $key = feedKey($platform, $handle);
+    $pdo = pdo();
+    $status = 'new';
+    $rank = ['new' => 0, 'pending' => 1, 'declined' => 2, 'group' => 3, 'tracked' => 4];
+    $set = function ($s) use (&$status, $rank) { if ($rank[$s] > $rank[$status]) $status = $s; };
+    foreach ($pdo->query("SELECT coll, data FROM docs WHERE coll IN ('sources','communities','submissions')")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $d = json_decode($r['data'], true) ?: [];
+      if ($r['coll'] === 'submissions') {
+        foreach (($d['items'] ?? []) as $it) {
+          if (is_array($it) && feedKey($it['platform'] ?? '', $it['handle'] ?? ($it['url'] ?? '')) === $key) $set('pending');
+        }
+        continue;
+      }
+      $hit = false;
+      foreach (['handle', 'url', 'nameLatin'] as $f) {
+        if (!empty($d[$f]) && feedKey($d['platform'] ?? $platform, $d[$f]) === $key) { $hit = true; break; }
+      }
+      if (!$hit) continue;
+      if ($r['coll'] === 'communities') $set('group');
+      else $set(($d['status'] ?? '') === 'approved' ? 'tracked' : (($d['status'] ?? '') === 'rejected' ? 'declined' : 'pending'));
+    }
+    // صفحه‌ای که در انتظار بررسی است ولی خودش در sources تأیید شده، همان tracked حساب می‌شود (رتبه‌ی بالاتر)
+    out(['exists' => $status !== 'new', 'status' => $status]);
   }
 
   case 'logout':
