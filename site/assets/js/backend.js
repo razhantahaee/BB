@@ -103,6 +103,7 @@
   var user = {
     id: async function () { return uid; },
     canEdit: async function () { return isAdmin(); },
+    logout: async function () { try { await call('logout'); } catch (e) {} adminCache = null; },
     can: async function () { return null; }
   };
 

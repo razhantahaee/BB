@@ -256,6 +256,7 @@ function renderMine(){
   }).join("")+'</ul>';
 }
 function renderQueue(){
+  var ab=$("admBadge"); if(ab) ab.hidden=!st.canEdit;
   renderAdm();
   var panel=$("adminPanel");
   panel.hidden=!st.canEdit; if(!st.canEdit) return;
@@ -617,6 +618,13 @@ function admRows(){
   return rows;
 }
 var STAT_FA={pending:"در انتظار",active:"فعال",removed:"حذف‌شده"};
+(function(){ var ab=$("admBadge"); if(!ab) return;
+  ab.addEventListener("click",async function(){
+    if(!confirm("از حساب ادمین خارج می‌شوی؟")) return;
+    try{ var u=await window.claude.use("user"); await u.logout(); }catch(e){}
+    location.reload();
+  });
+})();
 var admT=0;
 function renderAdm(){ if(admT) return; admT=requestAnimationFrame(function(){ admT=0; renderAdmNow(); }); }
 function renderAdmNow(){
