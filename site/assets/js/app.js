@@ -44,7 +44,7 @@ function typeFromWord(q){
   if(PERS.some(function(w){return q.indexOf(w)===0||w.indexOf(q)===0;})) return "persian";
   return null;
 }
-function normH(v){ return String(v||"").toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^@/,"").replace(/[\/?#].*$/,"").trim(); }
+function normH(v){ return String(v||"").toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^(chat\.whatsapp\.com|whatsapp\.com\/(channel|invite|c)|wa\.me)\//,"").replace(/^@/,"").replace(/[\/?#].*$/,"").trim(); }
 function eventsFor(src){
   var key=normH(src.handle);
   return st.events.filter(function(e){
@@ -229,7 +229,7 @@ async function addToGroups(src){
 }
 
 // ---------- admin & submissions ----------
-function keyFor(p,h){ return (p+"-"+String(h).toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^@/,"").replace(/\/+$/,"").replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"")).slice(0,180); }
+function keyFor(p,h){ return (p+"-"+String(h).toLowerCase().replace(/^https?:\/\/(www\.)?/,"").replace(/^(instagram|facebook)\.com\//,"").replace(/^(chat\.whatsapp\.com|whatsapp\.com\/(channel|invite|c)|wa\.me)\//,"").replace(/[?#].*$/,"").replace(/^@/,"").replace(/\/+$/,"").replace(/[^a-z0-9._-]+/g,"-").replace(/^-+|-+$/g,"")).slice(0,180); }
 function decided(k){ return st.sources.find(function(s){return s.id===k;}); }
 function renderSources(){
   var el=$("sources"); if(!st.canEdit||!el) return;
@@ -423,14 +423,17 @@ function normUrl(p,h){
   var x=h.replace(/^@/,"");
   if(p==="instagram") return "https://www.instagram.com/"+encodeURIComponent(x)+"/";
   if(p==="facebook") return "https://www.facebook.com/"+encodeURIComponent(x);
+  if(p==="whatsapp") return "https://chat.whatsapp.com/"+encodeURIComponent(x);
   return "https://"+x;
 }
+$("sPlatform").addEventListener("change",function(){ var w=this.value==="whatsapp"; $("sHandle").placeholder=w?"https://chat.whatsapp.com/… or https://whatsapp.com/channel/…":"@organizer or https://instagram.com/organizer"; });
 $("subForm").addEventListener("submit",async function(ev){
   ev.preventDefault();
   var msg=$("sMsg"), fb=$("sFallback");
   msg.className="msg"; fb.hidden=true;
   var p=$("sPlatform").value, h=$("sHandle").value.trim();
   if(h.length<2){ msg.className="msg bad"; msg.textContent="آیدی یا لینک صفحه را وارد کن."; return; }
+  if(p==="whatsapp" && !/^https?:\/\/(chat\.whatsapp\.com|wa\.me|(www\.)?whatsapp\.com)\//i.test(h)){ msg.className="msg bad"; msg.textContent="لینک دعوت گروه یا لینک کانال واتس‌اپ را وارد کن (مثلاً https://chat.whatsapp.com/…). شماره‌ی شخصی نفرست."; return; }
   var it={key:keyFor(p,h),platform:p,handle:h,url:normUrl(p,h),country:$("sCountry").value,city:$("sCity").value.trim().slice(0,80),type:$("sType").value,kind:$("sKind").value,note:$("sNote").value.trim().slice(0,240),at:new Date().toISOString()};
   if(st.db&&st.db.checkFeed){
     var sb=$("sBtn"); sb.disabled=true; msg.className="msg"; msg.textContent="در حال بررسی…";
