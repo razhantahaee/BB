@@ -348,8 +348,18 @@ function renderTint(){
   if(!t) return;
   setTimeout(function(){ el.style.background=t.join(","); el.style.opacity=".8"; },60);
 }
+function renderRemoved(){
+  var el=$("removed"); if(!el||!st.canEdit) return;
+  var list=st.sources.filter(function(s){return s.status==="rejected";}).sort(function(a,b){return String(b.reviewedAt||"").localeCompare(String(a.reviewedAt||""));});
+  $("removedN").textContent="("+faNum(list.length)+")";
+  if(!list.length){ el.innerHTML='<li>صفحه‌ی حذف‌شده‌ای نیست.</li>'; return; }
+  el.innerHTML=list.map(function(s){
+    var u=safeUrl(s.url), d=s.reviewedAt?String(s.reviewedAt).slice(0,10):"";
+    return '<li class="srcli"><div class="srctop"><span class="ltr" style="text-align:left"><span class="pf">'+esc(s.platform)+'</span><br>'+(u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(s.handle)+'</a>':esc(s.handle))+'</span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--muted)">'+esc((s.city?s.city+"، ":"")+(s.country==="all"?"همه کشورها":(NAME[s.country]||s.country||"")))+(d?' · <span class="ltr">'+esc(d)+'</span>':'')+'<button class="btn small ghost" data-restore="'+esc(s.id)+'">بازگرداندن</button></span></div></li>';
+  }).join("");
+}
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
-function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); renderTint(); }
+function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); renderTint(); renderRemoved(); }
 
 // ---------- city skyline in the hero ----------
 (function(){
@@ -496,6 +506,11 @@ $("sources").addEventListener("click",async function(ev){
   var b=ev.target.closest("button[data-stop]"); if(!b||!st.db) return;
   b.disabled=true;
   try{ await st.db.doc("sources/"+b.getAttribute("data-stop")).update({status:"rejected",reviewedAt:new Date().toISOString()}); }catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
+});
+$("removed").addEventListener("click",async function(ev){
+  var b=ev.target.closest("button[data-restore]"); if(!b||!st.db) return;
+  b.disabled=true;
+  try{ await st.db.doc("sources/"+b.getAttribute("data-restore")).update({status:"approved",reviewedAt:new Date().toISOString()}); }catch(e){ b.disabled=false; b.textContent="خطا، دوباره"; }
 });
 $("contactForm").addEventListener("submit",async function(ev){
   ev.preventDefault(); if(!st.db) return;
