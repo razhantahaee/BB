@@ -323,7 +323,7 @@ switch ($op) {
     elseif (substr($head, 0, 3) === "\xFF\xD8\xFF") $kind = 'jpeg';
     elseif (substr($head, 0, 4) === 'GIF8') $kind = 'gif';
     elseif (in_array(substr($head, 0, 4), ["II*\x00", "MM\x00*"], true)) $kind = 'tiff';
-    if (!$kind) fail(415, 'not a valid image');
+    if (!$kind) fail(415, (substr($head, 0, 4) === 'RIFF' || strpos((string)file_get_contents($f['tmp_name'], false, null, 0, 16), 'ftyp') !== false) ? 'webp or avif' : 'bad header');
     $pdo = pdo();
     $k = 'up_' . substr(sha1($_SERVER['REMOTE_ADDR'] ?? ''), 0, 16) . '_' . date('YmdH');
     $c = (int)$pdo->query("SELECT v FROM meta WHERE k=" . $pdo->quote($k))->fetchColumn();
@@ -341,16 +341,16 @@ switch ($op) {
       } else {
         if ($kind === 'tiff') fail(415, 'tiff not supported on this server');
         $info = @getimagesize($f['tmp_name']);
-        if (!$info || $info[0] * $info[1] > 40000000) fail(415, 'not a valid image');
+        if (!$info || $info[0] * $info[1] > 40000000) fail(415, 'decode failed');
         $src = @imagecreatefromstring((string)file_get_contents($f['tmp_name']));
-        if (!$src) fail(415, 'not a valid image');
+        if (!$src) fail(415, 'decode failed');
         $w = imagesx($src); $h = imagesy($src); $r = min($S / $w, $S / $h);
         $nw = max(1, (int)round($w * $r)); $nh = max(1, (int)round($h * $r));
         $dst = imagecreatetruecolor($S, $S); imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
         imagecopyresampled($dst, $src, intdiv($S - $nw, 2), intdiv($S - $nh, 2), 0, 0, $nw, $nh, $w, $h);
         ob_start(); imagepng($dst); $png = ob_get_clean();
       }
-    } catch (Throwable $e) { fail(415, 'not a valid image'); }
+    } catch (Throwable $e) { fail(415, 'decode failed'); }
     // گرد بودن عکس: ناحیه‌ی غیرسفید تقریباً مربع باشد، گوشه‌هایش سفید/شفاف و وسط چهار ضلعش رنگی -> برش دایره‌ای،
     // بیرون دایره شفاف (آیکون گرد، نه مربعی). حلقه‌ی رنگی اینستاگرام هم همین‌طور تشخیص داده می‌شود.
     $round = false;

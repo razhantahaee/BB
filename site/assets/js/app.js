@@ -469,7 +469,7 @@ $("subForm").addEventListener("submit",async function(ev){
         try{ var up=await st.db.uploadIcon(iconFile); it.icon=up.icon; }
         catch(ue){
           btn.disabled=false; msg.className="msg bad";
-          msg.textContent=ue&&ue.status===415?"پسوند قابل پشتیبانی نیست یا فایل عکس معتبر نیست. فقط PNG، JPEG، GIF یا TIFF.":ue&&ue.status===413?"حجم عکس بیشتر از حد مجاز است.":ue&&ue.status===429?"تعداد ارسال زیاد بود؛ کمی بعد دوباره امتحان کن.":"ارسال عکس انجام نشد؛ دوباره امتحان کن.";
+          msg.textContent=ue&&ue.status===415?(ue.message==="webp or avif"?"این فایل در واقع WebP یا AVIF است و فقط پسوندش png شده. آن را در Paint باز کن و با «Save as → PNG» دوباره ذخیره کن.":ue.message==="decode failed"?"فایل PNG/JPEG است ولی سرور نتوانست آن را بخواند. با Paint دوباره ذخیره‌اش کن یا عکس دیگری بفرست.":ue.message==="tiff not supported on this server"?"این سرور TIFF را پشتیبانی نمی‌کند. PNG یا JPEG بفرست.":ue.message==="unsupported extension"?"پسوند قابل پشتیبانی نیست. فقط PNG، JPEG، GIF یا TIFF.":"محتوای فایل یک عکس PNG/JPEG/GIF/TIFF واقعی نیست."):ue&&ue.status===413?"حجم عکس بیشتر از حد مجاز است.":ue&&ue.status===429?"تعداد ارسال زیاد بود؛ کمی بعد دوباره امتحان کن.":"ارسال عکس انجام نشد؛ دوباره امتحان کن.";
           return;
         }
       }
