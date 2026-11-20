@@ -351,23 +351,34 @@ switch ($op) {
         ob_start(); imagepng($dst); $png = ob_get_clean();
       }
     } catch (Throwable $e) { fail(415, 'not a valid image'); }
-    // گرد بودن عکس: چهار گوشه سفید/شفاف و وسط هر چهار ضلع رنگی -> بیرون دایره شفاف می‌شود (آیکون گرد، نه مربعی)
+    // گرد بودن عکس: ناحیه‌ی غیرسفید تقریباً مربع باشد، گوشه‌هایش سفید/شفاف و وسط چهار ضلعش رنگی -> برش دایره‌ای،
+    // بیرون دایره شفاف (آیکون گرد، نه مربعی). حلقه‌ی رنگی اینستاگرام هم همین‌طور تشخیص داده می‌شود.
     $round = false;
     if (function_exists('imagecreatefromstring') && ($g = @imagecreatefromstring($png))) {
-      $white = function ($x, $y) use ($g) { $c = imagecolorat($g, $x, $y); return (($c >> 16) & 255) >= 235 && (($c >> 8) & 255) >= 235 && ($c & 255) >= 235; };
-      $e = 3; $m = $S - 1 - $e; $mid = intdiv($S, 2); $i = 10; $n = $S - 1 - $i;
-      if ($white($e, $e) && $white($m, $e) && $white($e, $m) && $white($m, $m) && !$white($mid, $i) && !$white($mid, $n) && !$white($i, $mid) && !$white($n, $mid)) {
-        $o = imagecreatetruecolor($S, $S); imagealphablending($o, false); imagesavealpha($o, true);
-        $clear = imagecolorallocatealpha($o, 255, 255, 255, 127); imagefill($o, 0, 0, $clear);
-        $rad = $S / 2;
-        for ($y = 0; $y < $S; $y++) for ($x = 0; $x < $S; $x++) {
-          $d = sqrt(($x + .5 - $rad) ** 2 + ($y + .5 - $rad) ** 2);
-          if ($d > $rad) continue;
-          $c = imagecolorat($g, $x, $y);
-          $a = $d > $rad - 1 ? (int)round(127 * ($d - ($rad - 1))) : 0;
-          imagesetpixel($o, $x, $y, imagecolorallocatealpha($o, ($c >> 16) & 255, ($c >> 8) & 255, $c & 255, $a));
+      $white = function ($x, $y) use ($g) { $c = imagecolorat($g, $x, $y); return (($c >> 16) & 255) >= 240 && (($c >> 8) & 255) >= 240 && ($c & 255) >= 240; };
+      $x0 = $S; $y0 = $S; $x1 = -1; $y1 = -1;
+      for ($y = 0; $y < $S; $y++) for ($x = 0; $x < $S; $x++) if (!$white($x, $y)) { if ($x < $x0) $x0 = $x; if ($x > $x1) $x1 = $x; if ($y < $y0) $y0 = $y; if ($y > $y1) $y1 = $y; }
+      $bw = $x1 - $x0 + 1; $bh = $y1 - $y0 + 1;
+      if ($bw > $S * 0.6 && $bh > $S * 0.6 && abs($bw - $bh) <= max(4, 0.08 * max($bw, $bh))) {
+        $t = 3; $cx = intdiv($x0 + $x1, 2); $cy = intdiv($y0 + $y1, 2); $q = 6;
+        $corners = $white($x0 + $t, $y0 + $t) && $white($x1 - $t, $y0 + $t) && $white($x0 + $t, $y1 - $t) && $white($x1 - $t, $y1 - $t);
+        $any = function ($xa, $ya, $xb, $yb) use ($white) { for ($y = $ya; $y <= $yb; $y++) for ($x = $xa; $x <= $xb; $x++) if (!$white($x, $y)) return true; return false; };
+        $edges = $any($cx - 4, $y0, $cx + 4, $y0 + 8) && $any($cx - 4, $y1 - 8, $cx + 4, $y1) && $any($x0, $cy - 4, $x0 + 8, $cy + 4) && $any($x1 - 8, $cy - 4, $x1, $cy + 4);
+        if ($corners && $edges) {
+          $side = max($bw, $bh); $sx = (int)round(($x0 + $x1 + 1 - $side) / 2); $sy = (int)round(($y0 + $y1 + 1 - $side) / 2);
+          $o = imagecreatetruecolor($S, $S); imagealphablending($o, false); imagesavealpha($o, true);
+          imagefill($o, 0, 0, imagecolorallocatealpha($o, 255, 255, 255, 127));
+          $rad = $S / 2;
+          for ($y = 0; $y < $S; $y++) for ($x = 0; $x < $S; $x++) {
+            $d = sqrt(($x + .5 - $rad) ** 2 + ($y + .5 - $rad) ** 2);
+            if ($d > $rad) continue;
+            $px = min($S - 1, max(0, $sx + (int)floor(($x + .5) * $side / $S))); $py = min($S - 1, max(0, $sy + (int)floor(($y + .5) * $side / $S)));
+            $c = imagecolorat($g, $px, $py);
+            $a = $d > $rad - 1 ? (int)round(127 * ($d - ($rad - 1))) : 0;
+            imagesetpixel($o, $x, $y, imagecolorallocatealpha($o, ($c >> 16) & 255, ($c >> 8) & 255, $c & 255, $a));
+          }
+          ob_start(); imagepng($o); $png = ob_get_clean(); $round = true;
         }
-        ob_start(); imagepng($o); $png = ob_get_clean(); $round = true;
       }
     }
     $dir = __DIR__ . '/../uploads/icons';
