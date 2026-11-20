@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Talks to the BezanBerim site API with the secret token.
 Usage:  python site_sync.py cleanup [--dry]   -> archive events whose date is before today (Stockholm); today's events stay until tomorrow
+         python site_sync.py export                 -> rewrite sources.txt from the site's approved pages + upcoming events
          python site_sync.py import [file]     -> send findings/website-checked-<today>.json to the site's approval queue (pending/). Nothing goes live without Hosein.
 Needs in ~/.config/bb/env:  export BB_API_URL="https://bezanberim.eu/api/api.php"   export BB_TOKEN="..."  (never commit these)"""
 import json, os, re, sys, urllib.request, urllib.error
@@ -28,6 +29,47 @@ if __name__ == "__main__":
         res = call("cleanup", "&dry=1" if "--dry" in sys.argv else "")
         print("cleanup: today=%s archived=%s wouldArchive=%s kept=%s" % (res.get("today"), res.get("archived"), res.get("wouldArchive"), res.get("kept")))
         for line in res.get("list", []): print("  -", line)
+    elif cmd == "export":
+        # approved pages from the site -> sources.txt (adds new ones, removes rejected ones; keeps websites/comments); upcoming events -> "Existing events"
+        res = call("export")
+        def key(u):
+            u = u.strip().lower().rstrip("/"); u = re.sub(r"^https?://(www\.)?", "", u); return u
+        def norm(x):
+            p, h, u = x.get("platform"), (x.get("handle") or ""), (x.get("url") or "")
+            link = u if u.startswith("http") else ("https://www.instagram.com/%s/" % h.lstrip("@") if p == "instagram" else "https://www.facebook.com/%s" % h.lstrip("@") if p == "facebook" else "https://%s" % h)
+            return p, link.rstrip("/") + ("/" if p == "instagram" else "")
+        lines = open("sources.txt", encoding="utf-8").read().split("\n")
+        approved = [norm(x) for x in res["sources"] if x["status"] == "approved"]
+        rejected = {key(norm(x)[1]) for x in res["sources"] if x["status"] == "rejected"}
+        add = {"instagram": [], "facebook": [], "website": []}
+        for p, link in approved:
+            if p in add and "/groups/" not in link: add[p].append(link)
+        out, sec, seen = [], "", set()
+        def flush():
+            for l in add.get(sec, []):
+                if key(l) not in seen: out.append(l); seen.add(key(l))
+        for ln in lines:
+            t = ln.strip()
+            if t.startswith("#"):
+                flush()
+                low = t.lower()
+                sec = "instagram" if low.startswith("# instagram") else "facebook" if low.startswith("# facebook") else "website" if low.startswith("# websites") else "events" if low.startswith("# existing") else ""
+                out.append(ln)
+                if sec == "events":
+                    out.append("# Title | Date YYYY-MM-DD | City  (refreshed from the site on %s)" % res.get("today"))
+                    for e in sorted(res["events"], key=lambda e: e["date"]):
+                        if e["title"]: out.append("%s | %s | %s" % (e["title"], e["date"], e["city"]))
+                    seen = set(); break
+                seen = set(); continue
+            if sec in ("instagram", "facebook", "website") and t.startswith("http"):
+                if key(t) in rejected: continue
+                if key(t) in seen: continue
+                seen.add(key(t))
+            if sec == "facebook" and t.startswith("# (none yet"): continue
+            out.append(ln)
+        if sec != "events": flush()
+        open("sources.txt", "w", encoding="utf-8").write("\n".join(out).rstrip("\n") + "\n")
+        print("export: instagram=%d facebook=%d websites=%d events=%d" % (sum(1 for l in out if "instagram.com/" in l and l.startswith("http")), sum(1 for l in out if "facebook.com/" in l and l.startswith("http")), len(add["website"]), len(res["events"])))
     elif cmd == "import":
         today = datetime.now(ZoneInfo("Europe/Stockholm")).strftime("%Y-%m-%d")
         path = sys.argv[2] if len(sys.argv) > 2 else "findings/website-checked-%s.json" % today

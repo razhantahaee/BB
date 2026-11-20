@@ -289,6 +289,25 @@ switch ($op) {
     out(['exists' => $status !== 'new', 'status' => $status]);
   }
 
+  case 'export': {
+    // VPS (token): approved/rejected tracked pages + upcoming events (for dedup) -> the daily job rewrites sources.txt from this
+    if (!tokenOk() && !isAdmin()) fail(403, 'not allowed');
+    $pdo = pdo();
+    $today = (new DateTime('now', new DateTimeZone('Europe/Stockholm')))->format('Y-m-d');
+    $src = []; $ev = [];
+    foreach ($pdo->query("SELECT path, data FROM docs WHERE coll IN ('sources','events')")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $d = json_decode($r['data'], true) ?: [];
+      if (strpos($r['path'], 'sources/') === 0) {
+        $st = $d['status'] ?? '';
+        if ($st === 'approved' || $st === 'rejected') $src[] = ['id' => substr($r['path'], 8), 'platform' => $d['platform'] ?? '', 'handle' => $d['handle'] ?? '', 'url' => $d['url'] ?? '', 'status' => $st];
+      } else {
+        $end = (string)($d['endDate'] ?? $d['date'] ?? '');
+        if ($end >= $today) $ev[] = ['title' => $d['title'] ?? '', 'date' => $d['date'] ?? '', 'city' => $d['city'] ?? ''];
+      }
+    }
+    out(['ok' => true, 'today' => $today, 'sources' => $src, 'events' => $ev]);
+  }
+
   case 'logout':
     $_SESSION = [];
     session_destroy();

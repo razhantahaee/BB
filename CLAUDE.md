@@ -35,3 +35,4 @@ A human (Hosein) approves every event before it goes on the website. Never add e
 - Instagram can ask for a login/security check: stop immediately and tell the user.
 - Site import: after the Claude cleaning, `site_sync.py import` sends findings/website-checked-DATE.json to api.php op=import -> pending/<id> (approval queue in the admin panel). Hosein approves/rejects there; approved -> events/<id>. Never write to events/ from code.
 - cleanup.sh - separate nightly job (cron 03:00 Europe/Stockholm): only runs `site_sync.py cleanup` (archives finished events). Log: ~/cleanup.log. run.sh at 06:00 also runs it as step 0 (harmless duplicate).
+- sources.txt is refreshed automatically by `site_sync.py export` (run.sh step 0b): pages approved in the site's admin panel are added, rejected ones removed, 'Existing events' = upcoming events on the site. Web pages other than the 4 known websites are listed but need a parser in fetch_sites.py.
