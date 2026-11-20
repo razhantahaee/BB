@@ -6,7 +6,12 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ENVF="$HOME/.config/bb/strato.env"
 [ -f "$ENVF" ] || { echo "missing $ENVF"; exit 1; }
-set -a; . "$ENVF"; set +a
+# read KEY=VALUE literally (no shell parsing, so $ ! & etc. in the password are fine)
+while IFS= read -r line || [ -n "$line" ]; do
+  case "$line" in ''|\#*) continue;; esac
+  k="${line%%=*}"; v="${line#*=}"; v="${v%$'\r'}"
+  case "$k" in STRATO_HOST|STRATO_USER|STRATO_PASS|STRATO_DIR) printf -v "$k" '%s' "$v";; esac
+done < "$ENVF"
 : "${STRATO_HOST:?}" "${STRATO_USER:?}" "${STRATO_PASS:?}"; STRATO_DIR="${STRATO_DIR:-/}"
 command -v lftp >/dev/null || { echo "install lftp:  sudo apt install lftp"; exit 1; }
 DRY=""; [ "${1:-}" = "--dry" ] && DRY="--dry-run"
