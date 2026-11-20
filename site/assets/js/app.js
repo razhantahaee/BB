@@ -582,7 +582,6 @@ render();
   },function(){});
   db.doc("config/site").onSnapshot(function(d){ st.contact=d.exists?(d.data().contact||""):""; renderQueue(); },function(){});
 })();
-})();
 
 // ---------- unified admin table ----------
 var ADM={plat:"all",kind:"all",status:"all",country:"all",q:"",limit:60};
@@ -674,4 +673,5 @@ function renderAdmNow(){
     }
     await onQueueClick(ev); await onPendingClick(ev); await onSourcesClick(ev); await onRemovedClick(ev);
   });
+})();
 })();
