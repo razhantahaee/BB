@@ -109,8 +109,8 @@ function card(e){
     (e.venue?'<div class="venue" dir="auto" title="'+esc(e.venue)+'">'+esc(e.venue)+'</div>':'')+
     (timeLine?'<div class="time">'+timeLine+'</div>':'')+
     (e.organizer?'<div class="org" dir="auto">'+esc(e.organizer)+'</div>':'')+
-    '<div class="foot"><span class="price'+(unk?' unk':'')+'" dir="auto" title="'+esc(price)+'">'+esc(unk?"قیمت در صفحه‌ی برنامه":price)+'</span>'+(url?'<span class="ticket">'+(isIG?'پست':'بلیت')+'</span>':'')+'</div></div>';
-  return url? '<a class="ev '+cls+'" href="'+esc(url)+'" target="_blank" rel="noopener">'+inner+'</a>' : '<div class="ev '+cls+'">'+inner+'</div>';
+    '<div class="foot"><span class="price'+(unk?' unk':'')+'" dir="auto" title="'+esc(price)+'">'+esc(unk?"قیمت در صفحه‌ی برنامه":price)+'</span>'+'</div></div>';
+  return url? '<div class="ev '+cls+'" role="link" tabindex="0" data-go="'+esc(url)+'">'+inner+'</div>' : '<div class="ev '+cls+'">'+inner+'</div>';
 }
 
 // ---------- render ----------
@@ -211,11 +211,11 @@ function renderGroups(){
     var avHtml=(!g.cover&&(g.logo||g.kind!=="زیرگروه"))?'<span class="av'+(g.logo?' logo':'')+'">'+avIn+'</span>':'';
     var kindHtml=(g.kind&&g.kind!=="زیرگروه")?'<span class="kind">'+esc(g.kind)+'</span>':'';
     var descGo=(g.desc?'<p dir="auto">'+esc(g.desc)+'</p>':'')+
-      (url?'<span class="go">'+(g.platform==="instagram"?'اینستاگرام':g.platform==="facebook"?'فیسبوک':g.platform==="whatsapp"?'واتساپ':g.platform==="telegram"?'تلگرام':'صفحه')+' ←</span>':'<span class="go soon">لینک به‌زودی</span>');
+      '';
     var titleHtml='<h3 dir="auto">'+esc(g.name)+'</h3>'+(g.nameLatin&&g.nameLatin!==g.name?'<span class="gl">'+esc(g.nameLatin)+'</span>':'')+
       '<span class="gw">'+(FLAG[g.country]||'')+'<span>'+esc(place)+'</span>'+kindHtml+'</span>';
     var inner=cov+'<span class="grow">'+avHtml+'<span class="gb">'+titleHtml+descGo+'</span></span>';
-    return url?'<a class="gcard '+cls+'" href="'+esc(url)+'" target="_blank" rel="noopener">'+inner+'</a>':'<div class="gcard '+cls+'">'+inner+'</div>';
+    return url?'<div class="gcard '+cls+'" role="link" tabindex="0" data-go="'+esc(url)+'">'+inner+'</div>':'<div class="gcard '+cls+'">'+inner+'</div>';
   }).join("");
 }
 function gMatch(g,k){ if(k==="all") return true; if(k==="گروه") return g.kind==="گروه"||g.kind==="زیرگروه"; return g.kind===k; }
@@ -417,6 +417,11 @@ $("rail").addEventListener("scroll",function(){ updateArrows(); },{passive:true}
 window.addEventListener("resize",updateArrows);
 
 (function(){ $("sCountry").innerHTML='<option value="all">همه کشورها · Any country (دی‌جی/برگزارکننده در چند کشور)</option>'+COUNTRIES.filter(function(c){return c[0]!=="all";}).map(function(c){return '<option value="'+c[0]+'">'+esc(c[1]+" · "+c[2])+'</option>';}).join(""); })();
+
+// ---------- open links only on click (no visible links / no href on public cards) ----------
+function goLink(el){ var u=safeUrl(el.getAttribute("data-go")); if(u) window.open(u,"_blank","noopener"); }
+document.addEventListener("click",function(ev){ var c=ev.target.closest("[data-go]"); if(c) goLink(c); });
+document.addEventListener("keydown",function(ev){ if(ev.key!=="Enter"&&ev.key!==" ") return; var c=ev.target.closest&&ev.target.closest("[data-go]"); if(c&&ev.target===c){ ev.preventDefault(); goLink(c); } });
 
 // ---------- submit ----------
 function normUrl(p,h){

@@ -270,3 +270,7 @@ footer p{max-width:60ch;margin:6px 0 0}
 .hero.tinted .flag[aria-pressed="true"]{background:var(--green);border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.5)}
 .hero.tinted .weekend{background:rgba(8,14,11,.66);border-color:rgba(255,255,255,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .hero.tinted .calday{box-shadow:0 2px 8px rgba(0,0,0,.35)}
+
+[data-go]{cursor:pointer}
+.gcard[data-go]:hover{transform:translateY(-2px)}
+[data-go]:focus-visible{outline:2px solid var(--green-d);outline-offset:3px}
