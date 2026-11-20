@@ -310,6 +310,55 @@ switch ($op) {
     out(['ok' => true, 'today' => $today, 'sources' => $src, 'events' => $ev]);
   }
 
+  case 'uploadicon': {
+    // عمومی (با محدودیت): عکس آیکون گروه/صفحه. PNG/JPEG/GIF/TIFF پذیرفته می‌شود و همیشه به PNG مربع ۱۹۲×۱۹۲ (پس‌زمینه‌ی سفید) تبدیل می‌شود.
+    if (empty($_FILES['icon']) || $_FILES['icon']['error'] !== UPLOAD_ERR_OK) fail(400, 'no file');
+    $f = $_FILES['icon'];
+    if ($f['size'] > 2 * 1024 * 1024) fail(413, 'too large');
+    $ext = strtolower(pathinfo((string)$f['name'], PATHINFO_EXTENSION));
+    if (!in_array($ext, ['png', 'jpg', 'jpeg', 'gif', 'tif', 'tiff'], true)) fail(415, 'unsupported extension');
+    $head = (string)file_get_contents($f['tmp_name'], false, null, 0, 8);
+    $kind = null;
+    if (substr($head, 0, 8) === "\x89PNG\r\n\x1a\n") $kind = 'png';
+    elseif (substr($head, 0, 3) === "\xFF\xD8\xFF") $kind = 'jpeg';
+    elseif (substr($head, 0, 4) === 'GIF8') $kind = 'gif';
+    elseif (in_array(substr($head, 0, 4), ["II*\x00", "MM\x00*"], true)) $kind = 'tiff';
+    if (!$kind) fail(415, 'not a valid image');
+    $pdo = pdo();
+    $k = 'up_' . substr(sha1($_SERVER['REMOTE_ADDR'] ?? ''), 0, 16) . '_' . date('YmdH');
+    $c = (int)$pdo->query("SELECT v FROM meta WHERE k=" . $pdo->quote($k))->fetchColumn();
+    if ($c >= 10) fail(429, 'too many uploads');
+    $pdo->prepare("INSERT INTO meta (k, v) VALUES (?, ?) ON DUPLICATE KEY UPDATE v=VALUES(v)")->execute([$k, (string)($c + 1)]);
+    $S = 192; $png = null;
+    try {
+      if (class_exists('Imagick')) {
+        $im = new Imagick(); $im->readImage($f['tmp_name'] . '[0]');
+        if ($im->getImageWidth() * $im->getImageHeight() > 40000000) fail(415, 'image too large');
+        $im->thumbnailImage($S, $S, true);
+        $bg = new Imagick(); $bg->newImage($S, $S, new ImagickPixel('white'));
+        $bg->compositeImage($im, Imagick::COMPOSITE_OVER, intdiv($S - $im->getImageWidth(), 2), intdiv($S - $im->getImageHeight(), 2));
+        $bg->setImageFormat('png'); $png = $bg->getImageBlob();
+      } else {
+        if ($kind === 'tiff') fail(415, 'tiff not supported on this server');
+        $info = @getimagesize($f['tmp_name']);
+        if (!$info || $info[0] * $info[1] > 40000000) fail(415, 'not a valid image');
+        $src = @imagecreatefromstring((string)file_get_contents($f['tmp_name']));
+        if (!$src) fail(415, 'not a valid image');
+        $w = imagesx($src); $h = imagesy($src); $r = min($S / $w, $S / $h);
+        $nw = max(1, (int)round($w * $r)); $nh = max(1, (int)round($h * $r));
+        $dst = imagecreatetruecolor($S, $S); imagefill($dst, 0, 0, imagecolorallocate($dst, 255, 255, 255));
+        imagecopyresampled($dst, $src, intdiv($S - $nw, 2), intdiv($S - $nh, 2), 0, 0, $nw, $nh, $w, $h);
+        ob_start(); imagepng($dst); $png = ob_get_clean();
+      }
+    } catch (Throwable $e) { fail(415, 'not a valid image'); }
+    $dir = __DIR__ . '/../uploads/icons';
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) fail(500, 'cannot save');
+    if (!is_file($dir . '/.htaccess')) @file_put_contents($dir . '/.htaccess', "Options -ExecCGI\nRemoveHandler .php .phtml\nphp_flag engine off\n");
+    $name = bin2hex(random_bytes(10)) . '.png';
+    if (!@file_put_contents($dir . '/' . $name, $png)) fail(500, 'cannot save');
+    out(['ok' => true, 'icon' => 'uploads/icons/' . $name]);
+  }
+
   case 'logout':
     $_SESSION = [];
     session_destroy();

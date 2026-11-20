@@ -162,6 +162,10 @@
             <label class="field"><span>نوع برنامه‌ها</span><select id="sType"><option value="persian">ایرانی</option><option value="afghan">افغانی</option><option value="kurdish">کوردی</option><option value="all">همه</option></select></label>
           </div>
           <label class="field"><span>نوع صفحه</span><select id="sKind"><option value="گروه">گروه</option><option value="ایونت">ایونت</option><option value="انجمن">انجمن</option></select></label>
+          <label class="field" id="sIconBox"><span>عکس آیکون صفحه یا گروه (لوگو)</span>
+            <input id="sIcon" type="file" accept=".png,.jpg,.jpeg,.gif,.tif,.tiff,image/png,image/jpeg,image/gif,image/tiff">
+            <small style="color:var(--muted)">فرمت‌های قابل قبول: PNG، JPEG، GIF یا TIFF — حداکثر ۲ مگابایت. عکس خودکار به اندازه‌ی بقیه‌ی آیکون‌ها درمی‌آید.</small>
+          </label>
           <label class="field"><span>یادداشت برای ادمین (اختیاری)</span><input id="sNote" placeholder="مثلاً: هر ماه کنسرت کوردی در یوتبوری می‌گذارد"></label>
           <button class="btn" type="submit" id="sBtn">ارسال برای بررسی</button>
           <div class="msg" id="sMsg" role="status"></div>

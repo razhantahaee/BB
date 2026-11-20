@@ -83,6 +83,13 @@
   var db = {
     collection: function (name) { return collRef(name); },
     doc: function (path) { return docRef(path); },
+    uploadIcon: async function (file) {
+      var fd = new FormData(); fd.append('icon', file);
+      var r = await fetch(API + '?op=uploadicon&uid=' + encodeURIComponent(uid), { method: 'POST', body: fd, credentials: 'same-origin' });
+      var j = await r.json().catch(function () { return {}; });
+      if (!r.ok) { var e = new Error(j.error || ('HTTP ' + r.status)); e.status = r.status; throw e; }
+      return j;
+    },
     checkFeed: async function (platform, handle) { return call('checkfeed', { platform: platform, handle: handle }); }
   };
 

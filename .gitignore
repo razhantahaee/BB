@@ -5,3 +5,4 @@ __pycache__/
 *_state.json
 site/api/config.php
 instagram_seen.json.tmp
+site/uploads/

@@ -8,6 +8,7 @@ var $=function(id){return document.getElementById(id);};
 // ---------- state & helpers ----------
 var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],pending:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null,day:""};
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function safeIcon(u){ u=String(u||""); return /^uploads\/icons\/[a-f0-9]{16,40}\.png$/.test(u)?u:""; }
 function safeUrl(u){ u=String(u||""); return /^https?:\/\//i.test(u)?u:""; }
 function safeImg(u){ u=String(u||""); if(/^thumbs\/[a-z0-9._-]+\.(jpe?g|png|webp)$/i.test(u)) return u; return /^https:\/\/(www\.javantik\.com\/cdn\/events-image|volek\.events\/wp-content\/uploads|www\.modernamuseet\.se\/app\/uploads|www\.kingsplace\.co\.uk\/wp-content\/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co\/storage\/v1\/object\/public\/posters)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp)$/i.test(u)?u:""; }
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -225,7 +226,7 @@ function inGroups(src){ return st.groups.some(function(g){ return g.sourceId===s
 async function addToGroups(src){
   var h=String(src.handle||"").replace(/^https?:\/\/(www\.)?(instagram|facebook)\.com\//,"").replace(/^https?:\/\/(t|telegram)\.me\//,"").replace(/^@/,"").replace(/\/+$/,"");
   var type=src.type==="kurdish"?"kurdish":(src.type==="persian"||src.type==="afghan")?"persian":"both";
-  await st.db.doc("communities/"+gid(src)).set({name:src.note||h,nameLatin:h,kind:src.kind||"گروه",type:type,city:src.city||"",country:src.country||"all",url:src.url||"",platform:src.platform||"",desc:src.note||"",order:50,sourceId:src.id,addedAt:new Date().toISOString().slice(0,10)});
+  await st.db.doc("communities/"+gid(src)).set({name:src.note||h,nameLatin:h,kind:src.kind||"گروه",type:type,city:src.city||"",country:src.country||"all",url:src.url||"",platform:src.platform||"",desc:src.note||"",order:50,sourceId:src.id,logo:safeIcon(src.icon)||"",addedAt:new Date().toISOString().slice(0,10)});
 }
 
 // ---------- admin & submissions ----------
@@ -261,7 +262,7 @@ function renderQueue(){
   st.subs.forEach(function(d){ (d.items||[]).forEach(function(it){ if(!decided(it.key)) pend.push(it); }); });
   $("queue").innerHTML=pend.length? pend.map(function(it){
     var u=safeUrl(it.url);
-    return '<div class="qitem"><div><div class="who ltr" style="text-align:left">'+(u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(it.handle)+'</a>':esc(it.handle))+'</div><div style="color:var(--muted);font-size:13.5px">'+esc(it.platform)+' · '+esc(it.country==="all"?"همه کشورها":(NAME[it.country]||it.country))+(it.city?' · '+esc(it.city):'')+' · '+esc(({persian:'ایرانی',afghan:'افغانی',kurdish:'کوردی',all:'همه',both:'ایرانی و کوردی'})[it.type]||it.type)+(it.kind?' · '+esc(it.kind):'')+(it.note?' · «'+esc(it.note)+'»':'')+'</div></div><div class="act"><button class="btn small ok" data-act="approve" data-k="'+esc(it.key)+'">تأیید</button><button class="btn small ghost" data-act="approve-group" data-k="'+esc(it.key)+'">تأیید + گروه‌ها</button><button class="btn small no" data-act="reject" data-k="'+esc(it.key)+'">رد</button></div></div>';
+    return '<div class="qitem">'+(safeIcon(it.icon)?'<img src="'+esc(safeIcon(it.icon))+'" alt="" width="48" height="48" style="border-radius:10px;border:1px solid var(--line);background:#fff">':'')+'<div><div class="who ltr" style="text-align:left">'+(u?'<a href="'+esc(u)+'" target="_blank" rel="noopener">'+esc(it.handle)+'</a>':esc(it.handle))+'</div><div style="color:var(--muted);font-size:13.5px">'+esc(it.platform)+' · '+esc(it.country==="all"?"همه کشورها":(NAME[it.country]||it.country))+(it.city?' · '+esc(it.city):'')+' · '+esc(({persian:'ایرانی',afghan:'افغانی',kurdish:'کوردی',all:'همه',both:'ایرانی و کوردی'})[it.type]||it.type)+(it.kind?' · '+esc(it.kind):'')+(it.note?' · «'+esc(it.note)+'»':'')+'</div></div><div class="act"><button class="btn small ok" data-act="approve" data-k="'+esc(it.key)+'">تأیید</button><button class="btn small ghost" data-act="approve-group" data-k="'+esc(it.key)+'">تأیید + گروه‌ها</button><button class="btn small no" data-act="reject" data-k="'+esc(it.key)+'">رد</button></div></div>';
   }).join("") : '<div class="empty">صفحه‌ای در انتظار بررسی نیست.</div>';
   var c=$("contact"); if(document.activeElement!==c) c.value=st.contact||"";
 }
@@ -435,6 +436,11 @@ $("subForm").addEventListener("submit",async function(ev){
   var p=$("sPlatform").value, h=$("sHandle").value.trim();
   if(h.length<2){ msg.className="msg bad"; msg.textContent="آیدی یا لینک صفحه را وارد کن."; return; }
   if(p==="whatsapp" && !/^https?:\/\/(chat\.whatsapp\.com|wa\.me|(www\.)?whatsapp\.com)\//i.test(h)){ msg.className="msg bad"; msg.textContent="لینک دعوت گروه یا لینک کانال واتس‌اپ را وارد کن (مثلاً https://chat.whatsapp.com/…). شماره‌ی شخصی نفرست."; return; }
+  var iconFile=$("sIcon").files&&$("sIcon").files[0];
+  if(!iconFile){ msg.className="msg bad"; msg.textContent="لطفاً یک عکس برای آیکون صفحه یا گروه انتخاب کن (PNG، JPEG، GIF یا TIFF)."; return; }
+  var iext=(iconFile.name.split(".").pop()||"").toLowerCase();
+  if(["png","jpg","jpeg","gif","tif","tiff"].indexOf(iext)<0){ msg.className="msg bad"; msg.textContent="پسوند قابل پشتیبانی نیست. فقط PNG، JPEG، GIF یا TIFF قابل قبول است."; return; }
+  if(iconFile.size>2*1024*1024){ msg.className="msg bad"; msg.textContent="حجم عکس بیشتر از ۲ مگابایت است."; return; }
   var it={key:keyFor(p,h),platform:p,handle:h,url:normUrl(p,h),country:$("sCountry").value,city:$("sCity").value.trim().slice(0,80),type:$("sType").value,kind:$("sKind").value,note:$("sNote").value.trim().slice(0,240),at:new Date().toISOString()};
   if(st.db&&st.db.checkFeed){
     var sb=$("sBtn"); sb.disabled=true; msg.className="msg"; msg.textContent="در حال بررسی…";
@@ -450,6 +456,15 @@ $("subForm").addEventListener("submit",async function(ev){
   if(st.db&&st.uid&&st.canWrite!==false){
     var btn=$("sBtn"); btn.disabled=true;
     try{
+      if(st.db.uploadIcon){
+        msg.className="msg"; msg.textContent="در حال ارسال عکس…";
+        try{ var up=await st.db.uploadIcon(iconFile); it.icon=up.icon; }
+        catch(ue){
+          btn.disabled=false; msg.className="msg bad";
+          msg.textContent=ue&&ue.status===415?"پسوند قابل پشتیبانی نیست یا فایل عکس معتبر نیست. فقط PNG، JPEG، GIF یا TIFF.":ue&&ue.status===413?"حجم عکس بیشتر از حد مجاز است.":ue&&ue.status===429?"تعداد ارسال زیاد بود؛ کمی بعد دوباره امتحان کن.":"ارسال عکس انجام نشد؛ دوباره امتحان کن.";
+          return;
+        }
+      }
       var ref=st.db.doc("submissions/"+st.uid);
       var snap=await ref.get(); var items=(snap.exists&&snap.data().items)?snap.data().items.slice():[];
       if(!items.some(function(x){return x.key===it.key;})){
@@ -457,7 +472,7 @@ $("subForm").addEventListener("submit",async function(ev){
         await ref.set({items:items,updatedAt:it.at});
       }
       msg.className="msg good"; msg.textContent="ممنون! بعد از بررسی ادمین، این صفحه هر روز بررسی می‌شود.";
-      $("sHandle").value=""; $("sNote").value="";
+      $("sHandle").value=""; $("sNote").value=""; $("sIcon").value="";
       btn.disabled=false; return;
     }catch(e){
       btn.disabled=false;
@@ -480,7 +495,7 @@ $("queue").addEventListener("click",async function(ev){
   b.disabled=true;
   try{
     var act=b.getAttribute("data-act");
-    var src={platform:it.platform,handle:it.handle,url:it.url,country:it.country,city:it.city||"",type:it.type,note:it.note||"",status:act==="reject"?"rejected":"approved",reviewedAt:new Date().toISOString()};
+    var src={platform:it.platform,handle:it.handle,url:it.url,country:it.country,city:it.city||"",type:it.type,note:it.note||"",icon:safeIcon(it.icon),status:act==="reject"?"rejected":"approved",reviewedAt:new Date().toISOString()};
     await st.db.doc("sources/"+k).set(src);
     if(act==="approve-group"){ src.id=k; await addToGroups(src); }
   }
