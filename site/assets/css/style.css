@@ -278,3 +278,65 @@ footer p{max-width:60ch;margin:6px 0 0}
 /* round icons: the circle itself is the icon (no square card behind it) */
 .gcard .av.logo.round{border-radius:50%;background:transparent;border:0;padding:0;box-shadow:0 0 0 1px #e6dfd0}
 .gcard .av.logo.round img{object-fit:cover;border-radius:50%}
+
+/* ======== MOBILE FIRST POLISH (most visitors use a phone) ======== */
+html{-webkit-text-size-adjust:100%}
+body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.wrap{padding-inline:max(22px,env(safe-area-inset-left),env(safe-area-inset-right))}
+button,select,a.btn,.chip,.flag,.calday{touch-action:manipulation}
+@media (pointer:coarse){
+  .arrows{display:none}                         /* swipe instead of arrows */
+  .chip,.btn,.btn-dark,.pill{min-height:44px}
+  .nav button{min-height:52px}
+  .gcard:hover,.gcard[data-go]:hover,a.gcard:hover{transform:none}
+}
+@media (max-width:720px){
+  html{scroll-padding-top:120px}
+  .wrap{padding-inline:max(14px,env(safe-area-inset-left),env(safe-area-inset-right))}
+  /* iOS zooms into inputs below 16px */
+  input,select,textarea,.field input,.field select,.filters select,.filters input,.searchbox input{font-size:16px}
+  .bar{gap:8px;padding:8px 0}
+  .logo b{font-size:19px}
+  .logo .mark{width:32px;height:32px}
+  .btn-dark{padding:9px 14px;font-size:13.5px}
+  .nav button{min-width:68px;font-size:12px;padding:6px 8px 4px}
+  .hero .wrap{padding-top:26px;padding-bottom:26px}
+  .hero h1{font-size:clamp(25px,7.5vw,34px);margin-bottom:16px}
+  .searchbox{padding:4px}
+  .searchbox button{padding:10px 14px}
+  .weekend{gap:10px;padding:10px 12px;margin-top:16px}
+  .stack{width:78px;height:52px}
+  .stack span{width:38px;height:52px}
+  .stack span:nth-child(2){right:22px} .stack span:nth-child(3){right:44px}
+  .weekend b{font-size:15px}
+  .weekend small{font-size:12px}
+  .weekend .arr{width:30px;height:30px}
+  /* flags: one swipeable row instead of a tall wrapped block */
+  .flags{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:-14px;padding:2px 14px 6px;scrollbar-width:none}
+  .flags::-webkit-scrollbar{display:none}
+  .flag{scroll-snap-align:center;flex:0 0 auto;min-width:50px}
+  .calday{min-width:50px}
+  section.block{padding:34px 0}
+  .shead{margin-bottom:14px}
+  .shead h2{font-size:clamp(24px,7vw,30px)}
+  .filters{gap:8px}
+  .filters select{flex:1 1 calc(50% - 8px);min-width:0}
+  .filters input{flex:1 1 100%}
+  .count{margin-inline-start:0;width:100%}
+  .panel{padding:18px;border-radius:20px}
+  .panel h2{font-size:20px}
+  .btn{width:100%;justify-self:stretch;text-align:center}
+  .qitem .act{width:100%}.qitem .act .btn{width:auto;flex:1}
+  .srcrow{grid-template-columns:78px minmax(0,1fr);}
+  .srcrow > :last-child{grid-column:1/-1}
+  .cta{padding:16px;gap:12px}
+  .cta a{width:100%;text-align:center}
+  .gcard{padding:12px}
+  footer{padding:30px 0 90px}
+  .fab{bottom:max(14px,env(safe-area-inset-bottom));left:max(14px,env(safe-area-inset-left))}
+}
+@media (max-width:380px){
+  .grid{grid-template-columns:1fr}                /* very small phones: one column */
+  .rail{grid-auto-columns:86%}
+  .logo b{font-size:17px}
+}
