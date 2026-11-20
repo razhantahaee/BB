@@ -9,7 +9,7 @@ var $=function(id){return document.getElementById(id);};
 var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],pending:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null,day:""};
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function safeUrl(u){ u=String(u||""); return /^https?:\/\//i.test(u)?u:""; }
-function safeImg(u){ u=String(u||""); if(/^thumbs\/[a-z0-9._-]+\.(jpe?g|png|webp)$/i.test(u)) return u; return /^https:\/\/(www\.javantik\.com\/cdn\/events-image|volek\.events\/wp-content\/uploads|www\.kingsplace\.co\.uk\/wp-content\/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co\/storage\/v1\/object\/public\/posters)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp)$/i.test(u)?u:""; }
+function safeImg(u){ u=String(u||""); if(/^thumbs\/[a-z0-9._-]+\.(jpe?g|png|webp)$/i.test(u)) return u; return /^https:\/\/(www\.javantik\.com\/cdn\/events-image|volek\.events\/wp-content\/uploads|www\.modernamuseet\.se\/app\/uploads|www\.kingsplace\.co\.uk\/wp-content\/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co\/storage\/v1\/object\/public\/posters)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp)$/i.test(u)?u:""; }
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function todayISO(){return iso(new Date());}
 function plusDays(n){var d=new Date();d.setDate(d.getDate()+n);return iso(d);}
@@ -278,7 +278,7 @@ function renderPending(){
 }
 function eventsOnDay(day,code){
   return st.events.filter(function(e){
-    if(!isUpcoming(e)||e.ongoing) return false;
+    if(!isUpcoming(e)||(e.ongoing&&!e.endDate)) return false;
     if(code!=="all" && e.country!==code) return false;
     return e.date<=day && (e.endDate||e.date)>=day;
   }).length;
@@ -478,8 +478,11 @@ $("pending").addEventListener("click",async function(ev){
   b.disabled=true;
   try{
     if(b.getAttribute("data-pact")==="approve"){
-      var d={title:e.title,date:e.date,time:e.time||"",venue:e.venue||"",city:e.city||"",country:String(e.country).toLowerCase(),price:e.price||"See ticket page",type:e.type||"both",url:e.url||"",source:e.source||"",organizer:e.organizer||"",addedAt:new Date().toISOString().slice(0,10)};
+      var d={title:e.title,date:e.date,endDate:e.endDate||"",ongoing:!!e.ongoing,time:e.time||"",venue:e.venue||"",city:e.city||"",country:String(e.country).toLowerCase(),price:e.price||"See ticket page",type:e.type||"both",url:e.url||"",source:e.source||"",organizer:e.organizer||"",addedAt:new Date().toISOString().slice(0,10)};
       if(safeImg(e.image)) d.image=e.image;
+      if(/^\d{4}-\d{2}-\d{2}$/.test(e.endDate||"")) d.endDate=e.endDate;
+      if(e.ongoing) d.ongoing=true;
+      if(e.dateLabel) d.dateLabel=e.dateLabel;
       await st.db.doc("events/"+id).set(d);
       await st.db.doc("pending/"+id).update({status:"approved",reviewedAt:new Date().toISOString()});
     } else await st.db.doc("pending/"+id).update({status:"rejected",reviewedAt:new Date().toISOString()});

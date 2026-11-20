@@ -48,8 +48,9 @@ if __name__ == "__main__":
             link = e.get("ticket_url") if str(e.get("ticket_url") or "").startswith("http") else e.get("source_url")
             u = lambda k: "" if str(e.get(k) or "") == "unknown" else str(e.get(k) or "")
             out.append({"id": eid, "title": title, "date": date, "time": u("time"), "city": u("city"), "country": cc if cc != "xx" else "",
-                        "venue": u("venue"), "price": u("price"), "type": u("type"), "image": u("image"), "url": link or "",
-                        "source": str(e.get("source_url") or ""), "organizer": u("organizer"), "notes": u("notes")})
+                        "endDate": u("endDate") if re.fullmatch(r"\d{4}-\d{2}-\d{2}", u("endDate")) else "", "ongoing": "1" if e.get("ongoing") else "", "venue": u("venue"), "price": u("price"), "type": u("type"), "image": u("image"), "url": link or "",
+                        "source": str(e.get("source_url") or ""), "organizer": u("organizer"), "notes": u("notes"),
+                        "endDate": u("endDate"), "ongoing": bool(e.get("ongoing")), "dateLabel": u("dateLabel")})
         if not out:
             print("import: nothing to send"); sys.exit(0)
         res = call("import", "", {"events": out})

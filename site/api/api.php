@@ -247,9 +247,10 @@ switch ($op) {
       $id = (string)($e['id'] ?? '');
       if (!preg_match('/^[a-z0-9\-]{3,120}$/', $id) || isset($known[$id])) { $skipped++; continue; }
       $clean = [];
-      foreach (['title','date','time','city','country','venue','price','type','image','url','source','organizer','notes','postedAt'] as $k) {
+      foreach (['title','date','endDate','ongoing','time','city','country','venue','price','type','image','url','source','organizer','notes','postedAt','endDate','dateLabel'] as $k) {
         if (isset($e[$k]) && is_scalar($e[$k])) $clean[$k] = mb_substr((string)$e[$k], 0, 600);
       }
+      if (!empty($e['ongoing'])) $clean['ongoing'] = true;
       if (empty($clean['title'])) { $skipped++; continue; }
       $clean['status'] = 'pending'; $clean['importedAt'] = $today;
       $ins->execute(['pending/' . $id, 'pending', json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
