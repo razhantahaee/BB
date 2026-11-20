@@ -1,0 +1,6 @@
+| Website | Status | New events read | New candidates | Page errors | Already known (skipped) |
+|---|---|---|---|---|---|
+| volek.events | ok | 2 | 2 | 0 | 113 |
+| javantik.com | ok | 2 | 2 | 0 | 146 |
+| globalsounds.se | ok | 0 | 0 | 0 | 11 |
+| discotehran.se | ok | 0 | 0 | 0 | 0 |
