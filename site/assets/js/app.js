@@ -314,8 +314,8 @@ function renderTint(){
   var t=TINT[st.country];
   el.style.opacity="0";
   if(!t) return;
-  var n=t[1].length, parts=t[1].map(function(c,i){ var a=(c==="#FFFFFF")?"66":"FF"; return c+a+" "+(i*100/n).toFixed(0)+"% "+((i+1)*100/n).toFixed(0)+"%"; });
-  setTimeout(function(){ el.style.background="linear-gradient("+t[0]+"deg,"+parts.join(",")+")"; el.style.opacity=".55"; },60);
+  var n=t[1].length, parts=t[1].map(function(c,i){ var a=(c==="#FFFFFF")?"80":"FF"; return c+a+" "+(i*100/n).toFixed(0)+"% "+((i+1)*100/n).toFixed(0)+"%"; });
+  setTimeout(function(){ el.style.background="linear-gradient("+t[0]+"deg,"+parts.join(",")+")"; el.style.opacity=".72"; },60);
 }
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
 function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); renderTint(); }

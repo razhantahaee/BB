@@ -261,4 +261,4 @@ footer p{max-width:60ch;margin:6px 0 0}
 .calbar.in-hero .calstrip{justify-content:flex-start}
 
 /* soft country-flag tint under the hero overlay (kept faint so the dark look stays) */
-.flagtint{position:absolute;inset:-40px;z-index:1;opacity:0;filter:blur(45px);transition:opacity .7s ease;pointer-events:none}
+.flagtint{position:absolute;inset:-30px;z-index:1;opacity:0;filter:blur(28px) saturate(1.15);transition:opacity .7s ease;pointer-events:none}
