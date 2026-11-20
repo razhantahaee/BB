@@ -8,7 +8,7 @@ var $=function(id){return document.getElementById(id);};
 // ---------- state & helpers ----------
 var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],pending:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null,day:""};
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function safeIcon(u){ u=String(u||""); return /^uploads\/icons\/[a-f0-9]{16,40}\.png$/.test(u)?u:""; }
+function safeIcon(u){ u=String(u||""); return /^uploads\/icons\/[a-f0-9]{16,40}r?\.png$/.test(u)?u:""; }
 function safeUrl(u){ u=String(u||""); return /^https?:\/\//i.test(u)?u:""; }
 function safeImg(u){ u=String(u||""); if(/^thumbs\/[a-z0-9._-]+\.(jpe?g|png|webp)$/i.test(u)) return u; return /^https:\/\/(www\.javantik\.com\/cdn\/events-image|volek\.events\/wp-content\/uploads|www\.modernamuseet\.se\/app\/uploads|www\.kingsplace\.co\.uk\/wp-content\/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co\/storage\/v1\/object\/public\/posters)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp)$/i.test(u)?u:""; }
 function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -208,7 +208,7 @@ function renderGroups(){
     var place=[g.city, g.kind==="زیرگروه"?"":NAME[g.country]].filter(Boolean).join("، ");
     var avIn=g.logo?'<img src="'+esc(g.logo)+'" alt="" loading="lazy">':esc(ini);
     var cov=g.cover?'<img class="cover" src="'+esc(g.cover)+'" alt="" loading="lazy">':'';
-    var avHtml=(!g.cover&&(g.logo||g.kind!=="زیرگروه"))?'<span class="av'+(g.logo?' logo':'')+'">'+avIn+'</span>':'';
+    var avHtml=(!g.cover&&(g.logo||g.kind!=="زیرگروه"))?'<span class="av'+(g.logo?' logo':'')+(/(^uploads\/icons\/[a-f0-9]+r\.png|-round\.png)$/.test(g.logo||"")?' round':'')+'">'+avIn+'</span>':'';
     var kindHtml=(g.kind&&g.kind!=="زیرگروه")?'<span class="kind">'+esc(g.kind)+'</span>':'';
     var descGo=(g.desc&&g.desc!==g.name?'<p dir="auto">'+esc(g.desc)+'</p>':'')+
       '';

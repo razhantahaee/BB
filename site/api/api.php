@@ -351,10 +351,29 @@ switch ($op) {
         ob_start(); imagepng($dst); $png = ob_get_clean();
       }
     } catch (Throwable $e) { fail(415, 'not a valid image'); }
+    // گرد بودن عکس: چهار گوشه سفید/شفاف و وسط هر چهار ضلع رنگی -> بیرون دایره شفاف می‌شود (آیکون گرد، نه مربعی)
+    $round = false;
+    if (function_exists('imagecreatefromstring') && ($g = @imagecreatefromstring($png))) {
+      $white = function ($x, $y) use ($g) { $c = imagecolorat($g, $x, $y); return (($c >> 16) & 255) >= 235 && (($c >> 8) & 255) >= 235 && ($c & 255) >= 235; };
+      $e = 3; $m = $S - 1 - $e; $mid = intdiv($S, 2);
+      if ($white($e, $e) && $white($m, $e) && $white($e, $m) && $white($m, $m) && !$white($mid, $e) && !$white($mid, $m) && !$white($e, $mid) && !$white($m, $mid)) {
+        $o = imagecreatetruecolor($S, $S); imagealphablending($o, false); imagesavealpha($o, true);
+        $clear = imagecolorallocatealpha($o, 255, 255, 255, 127); imagefill($o, 0, 0, $clear);
+        $rad = $S / 2;
+        for ($y = 0; $y < $S; $y++) for ($x = 0; $x < $S; $x++) {
+          $d = sqrt(($x + .5 - $rad) ** 2 + ($y + .5 - $rad) ** 2);
+          if ($d > $rad) continue;
+          $c = imagecolorat($g, $x, $y);
+          $a = $d > $rad - 1 ? (int)round(127 * ($d - ($rad - 1))) : 0;
+          imagesetpixel($o, $x, $y, imagecolorallocatealpha($o, ($c >> 16) & 255, ($c >> 8) & 255, $c & 255, $a));
+        }
+        ob_start(); imagepng($o); $png = ob_get_clean(); $round = true;
+      }
+    }
     $dir = __DIR__ . '/../uploads/icons';
     if (!is_dir($dir) && !@mkdir($dir, 0755, true)) fail(500, 'cannot save');
     if (!is_file($dir . '/.htaccess')) @file_put_contents($dir . '/.htaccess', "Options -ExecCGI\nRemoveHandler .php .phtml\nphp_flag engine off\n");
-    $name = bin2hex(random_bytes(10)) . '.png';
+    $name = bin2hex(random_bytes(10)) . ($round ? 'r' : '') . '.png';
     if (!@file_put_contents($dir . '/' . $name, $png)) fail(500, 'cannot save');
     out(['ok' => true, 'icon' => 'uploads/icons/' . $name]);
   }

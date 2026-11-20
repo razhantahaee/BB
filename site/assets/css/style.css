@@ -274,3 +274,7 @@ footer p{max-width:60ch;margin:6px 0 0}
 [data-go]{cursor:pointer}
 .gcard[data-go]:hover{transform:translateY(-2px)}
 [data-go]:focus-visible{outline:2px solid var(--green-d);outline-offset:3px}
+
+/* round icons: the circle itself is the icon (no square card behind it) */
+.gcard .av.logo.round{border-radius:50%;background:transparent;border:0;padding:0;box-shadow:0 0 0 1px #e6dfd0}
+.gcard .av.logo.round img{object-fit:cover;border-radius:50%}
