@@ -3,7 +3,7 @@
 export PATH="$HOME/.local/bin:$PATH"
 source ~/.config/bb/env
 cd ~/BB || exit 1
-git pull --rebase --autostash -q || { echo "$(date -Is) git pull FAILED" >> ~/bb.log; exit 1; }
+if [ "$BB_NO_PUSH" != "1" ]; then git pull --rebase --autostash -q || { echo "$(date -Is) git pull FAILED" >> ~/bb.log; exit 1; }; fi
 echo "$(date -Is) start" >> ~/bb.log
 # 0) remove finished events from the site (archive); skipped if BB_API_URL/BB_TOKEN are not set
 timeout -k 5 90 ~/BB/.venv/bin/python site_sync.py cleanup >> ~/bb.log 2>&1 || echo "site cleanup skipped/failed" >> ~/bb.log
@@ -27,7 +27,9 @@ fi
 timeout -k 5 120 ~/BB/.venv/bin/python site_sync.py import >> ~/bb.log 2>&1 || echo "site import skipped/failed" >> ~/bb.log   # candidates -> approval queue only
 pkill -u bb -f 'playwright/driver' 2>/dev/null || true   # no leftover browsers
 echo "last run: $(date -Is)" > status.txt
-git add -A
-git commit -qm "daily run $(date +%F)" || true
-git push -q
+if [ "$BB_NO_PUSH" != "1" ]; then   # BB_NO_PUSH=1 in ~/.config/bb/env: test machine, never commit/push
+  git add -A
+  git commit -qm "daily run $(date +%F)" || true
+  git push -q
+fi
 echo "$(date -Is) done" >> ~/bb.log
