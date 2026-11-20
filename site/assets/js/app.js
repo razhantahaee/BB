@@ -180,12 +180,21 @@ function renderList(){
 }
 $("list").addEventListener("click",function(ev){ if(ev.target.closest("#moreEv")){ st._lim=(st._lim||36)+36; renderList(); } });
 (function(){ // compact header while scrolling down, back-to-top button
-  var h=document.querySelector(".site-header"), t=$("toTop"), last=0, tick=false;
+  var h=document.querySelector(".site-header"), t=$("toTop"), last=0, tick=false, lastFlip=0;
   window.addEventListener("scroll",function(){
     if(tick) return; tick=true;
     requestAnimationFrame(function(){
       var y=window.scrollY||0;
-      if(h){ if(y>140&&y>last+4) h.classList.add("compact"); else if(y<last-4||y<60) h.classList.remove("compact"); }
+      // compact header only on phones, only when the page is clearly taller than the screen, and never twice within 400ms:
+      // otherwise the header resize changes the page height and the scroll position, and the bar flickers (seen while approving in admin)
+      var canC=window.matchMedia("(max-width:720px)").matches && (document.documentElement.scrollHeight-window.innerHeight)>900;
+      if(h){
+        if(!canC){ if(h.classList.contains("compact")) h.classList.remove("compact"); }
+        else if(Date.now()-lastFlip>400){
+          if(y>140&&y>last+8&&!h.classList.contains("compact")){ h.classList.add("compact"); lastFlip=Date.now(); }
+          else if((y<last-8||y<60)&&h.classList.contains("compact")){ h.classList.remove("compact"); lastFlip=Date.now(); }
+        }
+      }
       if(t) t.classList.toggle("show",y>700);
       last=y; tick=false;
     });
