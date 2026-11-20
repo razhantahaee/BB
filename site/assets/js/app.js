@@ -150,11 +150,11 @@ function renderCats(){
   $("cats").innerHTML=CATS.map(function(c){ return '<button type="button" class="chip" data-cat="'+c[0]+'" aria-pressed="'+(st.cat===c[0])+'">'+c[1]+(st.loaded?' <span style="opacity:.6">'+faNum(n[c[0]]||0)+'</span>':'')+'</button>'; }).join("");
 }
 function renderCities(){
-  var set={};
-  st.events.forEach(function(e){ if(baseFilter(e)&&e.city) set[e.city]=1; });
-  var cities=Object.keys(set).sort();
-  if(st.city && !set[st.city]) st.city="";
-  $("city").innerHTML='<option value="">همه شهرها</option>'+cities.map(function(c){return '<option'+(c===st.city?' selected':'')+'>'+esc(c)+'</option>';}).join("");
+  var cnt={};
+  st.events.forEach(function(e){ if(baseFilter(e)&&e.city) cnt[e.city]=(cnt[e.city]||0)+1; });
+  var cities=Object.keys(cnt).sort(function(a,b){ return cnt[b]-cnt[a] || a.localeCompare(b); });
+  if(st.city && !cnt[st.city]) st.city="";
+  $("city").innerHTML='<option value="">همه شهرها'+(cities.length?' ('+faNum(cities.length)+')':'')+'</option>'+cities.map(function(c){return '<option value="'+esc(c)+'"'+(c===st.city?' selected':'')+'>'+esc(c)+' · '+faNum(cnt[c])+'</option>';}).join("");
 }
 function renderList(){
   var el=$("list");
@@ -364,7 +364,7 @@ function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderH
 
 // ---------- city skyline in the hero ----------
 (function(){
-  var g=$("city"), x=0, h="", seed=7;
+  var g=$("skyline"), x=0, h="", seed=7;
   function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
   while(x<1440){
     var w=40+rnd()*70, hh=90+rnd()*230, y=520-hh;
