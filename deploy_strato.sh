@@ -20,7 +20,7 @@ lftp -u "$STRATO_USER","$STRATO_PASS" "sftp://$STRATO_HOST" 2>&1 <<EOF | sed -E 
 set sftp:auto-confirm yes
 set net:max-retries 2
 set net:timeout 20
-mirror -R --verbose --only-newer $DRY \
+mirror -R --verbose $DRY \
   --exclude-glob api/config.php --exclude-glob uploads/ --exclude-glob CLAUDE.md --exclude-glob '*.zip' \
   site "$STRATO_DIR"
 bye
