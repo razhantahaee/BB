@@ -305,8 +305,20 @@ $("calStrip").addEventListener("click",function(ev){
   var k=b.getAttribute("data-day"); st.day=(st.day===k?"":k); if(st.day) st.when="all";
   render(); goEvents();
 });
+// ---------- soft flag-colour tint in the hero (per selected country) ----------
+// [angle, colours]; 180 = horizontal stripes (top→bottom), 90 = vertical (left→right). White bands are drawn very faint.
+var TINT={se:[90,["#006AA7","#FECC00"]],de:[180,["#000000","#DD0000","#FFCE00"]],gb:[90,["#012169","#FFFFFF","#C8102E"]],nl:[180,["#AE1C28","#FFFFFF","#21468B"]],no:[90,["#BA0C2F","#FFFFFF","#00205B"]],dk:[90,["#C8102E","#FFFFFF"]],fr:[90,["#0055A4","#FFFFFF","#EF4135"]],at:[180,["#ED2939","#FFFFFF","#ED2939"]],ch:[90,["#D52B1E","#FFFFFF"]],be:[90,["#000000","#FAE042","#ED2939"]],fi:[90,["#003580","#FFFFFF"]],it:[90,["#009246","#FFFFFF","#CE2B37"]],es:[180,["#AA151B","#F1BF00","#AA151B"]],tr:[90,["#E30A17","#FFFFFF"]],gr:[180,["#0D5EAF","#FFFFFF"]],cz:[90,["#11457E","#FFFFFF","#D7141A"]],ie:[90,["#169B62","#FFFFFF","#FF883E"]],pl:[180,["#FFFFFF","#DC143C"]],pt:[90,["#006600","#FF0000"]],hu:[180,["#CE2939","#FFFFFF","#477050"]],lu:[180,["#EF3340","#FFFFFF","#00A3E0"]]};
+var tintShown=null;
+function renderTint(){
+  var el=$("flagTint"); if(!el||tintShown===st.country) return; tintShown=st.country;
+  var t=TINT[st.country];
+  el.style.opacity="0";
+  if(!t) return;
+  var n=t[1].length, parts=t[1].map(function(c,i){ var a=(c==="#FFFFFF")?"55":"CC"; return c+a+" "+(i*100/n).toFixed(0)+"% "+((i+1)*100/n).toFixed(0)+"%"; });
+  setTimeout(function(){ el.style.background="linear-gradient("+t[0]+"deg,"+parts.join(",")+")"; el.style.opacity=".5"; },60);
+}
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
-function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); }
+function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); renderTint(); }
 
 // ---------- city skyline in the hero ----------
 (function(){
