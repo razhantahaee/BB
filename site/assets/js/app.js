@@ -6,7 +6,7 @@ var NAME={}, EN={}; COUNTRIES.forEach(function(c){NAME[c[0]]=c[1];EN[c[0]]=c[2];
 var $=function(id){return document.getElementById(id);};
 
 // ---------- state & helpers ----------
-var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],pending:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null};
+var st={groups:[],gkind:"all",country:"all",type:"all",when:"all",cat:"all",city:"",q:"",events:[],pending:[],sources:[],subs:[],contact:"",uid:null,canEdit:false,canWrite:null,loaded:false,db:null,openSrc:null,day:""};
 function esc(t){return String(t==null?"":t).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 function safeUrl(u){ u=String(u||""); return /^https?:\/\//i.test(u)?u:""; }
 function safeImg(u){ u=String(u||""); if(/^thumbs\/[a-z0-9._-]+\.(jpe?g|png|webp)$/i.test(u)) return u; return /^https:\/\/(www\.javantik\.com\/cdn\/events-image|volek\.events\/wp-content\/uploads|www\.kingsplace\.co\.uk\/wp-content\/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co\/storage\/v1\/object\/public\/posters)\/[A-Za-z0-9._\/-]+\.(jpe?g|png|webp)$/i.test(u)?u:""; }
@@ -73,6 +73,7 @@ function visible(){
   return st.events.filter(function(e){
     if(!baseFilter(e)) return false;
     if(!inWhen(e,st.when)) return false;
+    if(st.day && !(e.date<=st.day && (e.endDate||e.date)>=st.day)) return false;
     if(st.type!=="all" && !(e.type===st.type || e.type==="both")) return false;
     if(st.cat!=="all" && catOf(e)!==st.cat) return false;
     if(st.city && (e.city||"")!==st.city) return false;
@@ -275,8 +276,37 @@ function renderPending(){
     return '<div class="qitem"><div><div class="who">'+esc(e.title)+'</div><div style="color:var(--muted);font-size:13.5px" class="ltr">'+esc([e.date||"?",e.time,e.venue,e.city,(e.country||"").toUpperCase(),e.price,e.type].filter(function(x){return x&&x!=="unknown";}).join(" · "))+'</div>'+(e.notes?'<div class="sm">'+esc(e.notes)+'</div>':'')+(u?'<div class="sm"><a href="'+esc(u)+'" target="_blank" rel="noopener">لینک</a></div>':'')+(ok?'':'<div class="sm">تاریخ یا کشور نامشخص؛ فقط رد کردن ممکن است.</div>')+'</div><div class="act"><button class="btn small ok" data-pact="approve" data-id="'+esc(e.id)+'"'+(ok?'':' disabled')+'>تأیید و انتشار</button><button class="btn small no" data-pact="reject" data-id="'+esc(e.id)+'">رد</button></div></div>';
   }).join("") : '<div class="empty">پیشنهاد جدیدی نیست.</div>';
 }
+function eventsOnDay(day,code){
+  return st.events.filter(function(e){
+    if(!isUpcoming(e)||e.ongoing) return false;
+    if(code!=="all" && e.country!==code) return false;
+    return e.date<=day && (e.endDate||e.date)>=day;
+  }).length;
+}
+function renderCal(){
+  var el=$("calStrip"); if(!el) return;
+  var c=st.country, small=c!=="all", html="", totalC=0, t0=todayISO();
+  for(var i=0;i<14;i++){
+    var d=new Date(); d.setDate(d.getDate()+i); var k=iso(d);
+    var n=eventsOnDay(k,c), all=small?eventsOnDay(k,"all"):n; totalC+=n;
+    html+='<button type="button" class="calday'+(n?' has':'')+(st.day===k?' on':'')+(i===0?' today':'')+'" role="listitem" data-day="'+k+'" aria-pressed="'+(st.day===k)+'" aria-label="'+esc(fmt(d,{weekday:"long",day:"numeric",month:"long"}))+': '+n+'">'+
+      '<span class="cw">'+(i===0?"امروز":esc(fmt(d,{weekday:"short"})))+'</span>'+
+      '<span class="cd">'+esc(fmt(d,{day:"numeric"}))+'</span>'+
+      '<span class="cm">'+EN_MONTHS[d.getMonth()]+'</span>'+
+      '<span class="cn">'+(n? faNum(n):'·')+'</span>'+
+      (small?'<span class="ca" title="کل اروپا">'+(all?faNum(all):'')+'</span>':'')+
+      '</button>';
+  }
+  el.innerHTML=html;
+  $("calSub").textContent=(small?(NAME[c]+" · "):"")+faNum(totalC)+" برنامه"+(small?" · عدد ریز: کل اروپا":"")+(st.day?" · فیلتر روز فعال (دوباره بزن تا برداشته شود)":"");
+}
+$("calStrip").addEventListener("click",function(ev){
+  var b=ev.target.closest("button[data-day]"); if(!b) return;
+  var k=b.getAttribute("data-day"); st.day=(st.day===k?"":k); if(st.day) st.when="all";
+  render(); goEvents();
+});
 function renderFilters(){ renderCats(); renderCities(); renderNav(); renderList(); }
-function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); }
+function render(){ renderGroups(); renderCountrySelect(); renderFlags(); renderHero(); renderRail(); renderFilters(); renderFoot(); renderSources(); renderMine(); renderQueue(); renderPending(); renderCal(); }
 
 // ---------- city skyline in the hero ----------
 (function(){

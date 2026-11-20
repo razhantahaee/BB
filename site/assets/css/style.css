@@ -238,3 +238,19 @@ footer p{max-width:60ch;margin:6px 0 0}
   .searchbox button{padding:10px 16px}
   .hero .wrap{padding-top:38px}
 }
+
+/* ---- 14-day calendar strip ---- */
+.calbar{background:var(--paper2);border-bottom:1px solid var(--line);padding:10px 0 12px}
+.calhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:8px;font-size:14px;flex-wrap:wrap}
+.calhead span{color:var(--muted);font-size:12.5px}
+.calstrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.calday{flex:0 0 auto;min-width:56px;display:flex;flex-direction:column;align-items:center;gap:0;padding:6px 6px 5px;border:1px solid var(--line);background:var(--card);border-radius:12px;font:inherit;color:var(--ink2);cursor:pointer;line-height:1.25}
+.calday .cw{font-size:11.5px;color:var(--muted)}
+.calday .cd{font-size:19px;font-weight:800;color:var(--ink)}
+.calday .cm{font-size:10px;color:var(--muted);direction:ltr}
+.calday .cn{margin-top:3px;min-width:22px;padding:0 6px;border-radius:999px;font-size:12.5px;font-weight:800;color:var(--muted)}
+.calday.has .cn{background:var(--green);color:#fff}
+.calday .ca{font-size:9.5px;color:var(--muted);min-height:12px}
+.calday.today{border-color:var(--green)}
+.calday.on{background:var(--green-l);border-color:var(--green-d);box-shadow:0 0 0 2px var(--green-l)}
+.calday:focus-visible{outline:2px solid var(--green-d);outline-offset:2px}
