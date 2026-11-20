@@ -429,3 +429,43 @@ html,body{max-width:100%;overflow-x:clip}
   .panel .sub{font-size:13px}
 }
 @media (max-width:720px){ section.alt .month{background:var(--paper2)} .month{border-radius:10px} }
+
+/* ======== PHONE: everything visible, no sideways scrolling at the top ======== */
+.qnav{display:none}
+@media (max-width:720px){
+  .site-header .nav{display:none}
+  .weekend,.pick{display:none}
+  .qnav{display:block;margin-top:12px}
+  .qprime{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .qp{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:62px;padding:8px 4px;border:1px solid rgba(255,255,255,.22);border-radius:16px;background:rgba(255,255,255,.1);color:#fff;font:inherit;font-weight:800;font-size:14px;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .qp .ico{width:22px;height:22px;stroke:#F2C46B}
+  .qchips{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;margin-top:10px}
+  .qc{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:7px 13px;min-height:38px;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer}
+  .qp[aria-pressed="true"],.qc[aria-pressed="true"]{background:var(--green);border-color:#5FD3A4}
+  .hero.tinted .qp,.hero.tinted .qc{background:rgba(8,14,11,.62);border-color:rgba(255,255,255,.35)}
+  .hero.tinted .qp[aria-pressed="true"],.hero.tinted .qc[aria-pressed="true"]{background:var(--green)}
+  /* flags: a compact grid, all countries visible at once */
+  .flags{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;overflow:visible;margin:14px 0 0;padding:0}
+  .flag{min-width:0;width:100%;padding:6px 2px 4px}
+  .flag .n small{display:none}
+  .flag svg,.globe{width:30px;height:20px}
+  /* calendar: two rows of seven days, all visible */
+  .calstrip{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;overflow:visible}
+  .calday{min-width:0;padding:5px 1px 4px}
+  .calday .cw{font-size:10.5px}
+  .calday .cd{font-size:17px}
+  .calday .cm,.calday .ca{display:none}
+  .calday .cn{min-width:0;padding:0 5px;font-size:11.5px}
+  .calbar.in-hero{margin-top:14px}
+}
+.flag.more{display:none}
+@media (max-width:720px){
+  .flags{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+  .flags:not(.open) .flag.zero{display:none}
+  .flag.more{display:flex;justify-content:center;min-height:50px;font-weight:800;font-size:12.5px;background:rgba(255,255,255,.16)}
+  .flag .n{font-size:12px}
+  .qchips{gap:6px;margin-top:8px}
+  .qc{padding:6px 11px;font-size:13px}
+  .hero h1{font-size:clamp(21px,6.2vw,28px)}
+}
+.flag.more,.flag.more .mt{color:#fff}

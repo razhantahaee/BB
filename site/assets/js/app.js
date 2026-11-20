@@ -124,7 +124,7 @@ function renderFlags(){
     var pic=c[0]==="all"?'<span class="globe" aria-hidden="true">EU</span>':FLAG[c[0]];
     var zero=st.loaded&&n===0&&c[0]!=="all";
     return '<button type="button" class="flag'+(zero?' zero':'')+'" data-c="'+c[0]+'" title="'+esc(c[1]+" · "+c[2])+'" aria-label="'+esc(c[1])+(n===""?"":"، "+n+" برنامه")+'" aria-pressed="'+(st.country===c[0])+'">'+pic+'<span class="n">'+(n===""?"&nbsp;":faNum(n)+'<small>برنامه</small>')+'</span></button>';
-  }).join("");
+  }).join("")+(st.loaded&&COUNTRIES.some(function(c){return c[0]!=="all"&&upcomingCount(c[0])===0;})?'<button type="button" class="flag more" id="flagMore" aria-expanded="'+($("flags").classList.contains("open"))+'"><span class="mt">'+($("flags").classList.contains("open")?"کمتر":"بیشتر")+'</span></button>':"");
 }
 function renderHero(){
   var withImg=st.events.filter(function(e){return baseFilter(e)&&safeImg(e.image);}).sort(byDate);
@@ -193,7 +193,7 @@ $("list").addEventListener("click",function(ev){ if(ev.target.closest("#moreEv")
   if(t) t.addEventListener("click",function(){ window.scrollTo({top:0,behavior:"smooth"}); });
 })();
 function renderNav(){
-  document.querySelectorAll("#nav button[data-nav]").forEach(function(b){
+  document.querySelectorAll("#nav button[data-nav], #qnav button[data-nav]").forEach(function(b){
     var k=b.getAttribute("data-nav"), on=false;
     if(["new","today","weekend"].indexOf(k)>=0) on=st.when===k;
     else if(["concert","party","celebration","culture"].indexOf(k)>=0) on=st.cat===k;
@@ -407,9 +407,21 @@ window.addEventListener("hashchange",function(){ if(fromHash()){ st.city=""; ren
 fromHash();
 
 function goEvents(){ var el=$("events"); if(el) el.scrollIntoView({block:"start"}); }
-$("flags").addEventListener("click",function(ev){ var b=ev.target.closest(".flag"); if(!b) return; setCountry(b.getAttribute("data-c")); });
+$("flags").addEventListener("click",function(ev){ var b=ev.target.closest(".flag"); if(!b) return; if(b.id==="flagMore"){ $("flags").classList.toggle("open"); renderFlags(); return; } setCountry(b.getAttribute("data-c")); });
 $("countrySel").addEventListener("change",function(){ setCountry(this.value); });
-$("nav").addEventListener("click",function(ev){
+(function(){ // phone quick-nav: same buttons as the header nav, laid out as a grid (no sideways scrolling)
+  var src=[].slice.call(document.querySelectorAll("#nav button[data-nav]")), seen={}, prime="", chips="";
+  src.forEach(function(b){
+    var k=b.getAttribute("data-nav"); if(b.classList.contains("love")||k==="add") return;
+    var label=b.textContent.trim(), ico=b.querySelector("use").getAttribute("href");
+    if(["new","today","weekend"].indexOf(k)>=0){
+      var short={new:"تازه‌ها",today:"امروز",weekend:"آخر هفته"}[k];
+      prime+='<button type="button" class="qp" data-nav="'+k+'"><svg class="ico"><use href="'+ico+'"/></svg><span>'+short+'</span></button>';
+    } else { if(seen[k]) return; seen[k]=1; chips+='<button type="button" class="qc" data-nav="'+k+'">'+label+'</button>'; }
+  });
+  $("qnav").innerHTML='<div class="qprime">'+prime+'</div><div class="qchips">'+chips+'</div>';
+})();
+function onNavClick(ev){
   var b=ev.target.closest("button[data-nav]"); if(!b) return;
   var k=b.getAttribute("data-nav");
   if(k==="add"){ $("add").scrollIntoView({block:"start"}); return; }
@@ -418,7 +430,8 @@ $("nav").addEventListener("click",function(ev){
   else if(["concert","party","celebration","culture"].indexOf(k)>=0){ st.cat=(st.cat===k?"all":k); }
   else { st.type=(st.type===k?"all":k); }
   renderFilters(); goEvents();
-});
+}
+$("nav").addEventListener("click",onNavClick); $("qnav").addEventListener("click",onNavClick);
 $("cats").addEventListener("click",function(ev){ var b=ev.target.closest(".chip"); if(!b) return; st.cat=b.getAttribute("data-cat"); renderFilters(); });
 $("typeSel").addEventListener("change",function(){ st.type=this.value; renderFilters(); });
 $("whenSel").addEventListener("change",function(){ st.when=this.value; renderFilters(); });
