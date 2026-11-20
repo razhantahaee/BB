@@ -196,7 +196,7 @@ var GK=[["all","همه"],["انجمن","انجمن‌ها"],["گروه","گرو�
 function renderGroups(){
   var el=$("groupsList"); if(!el) return;
   $("grTitle").textContent="گروه‌ها و انجمن‌ها"+(st.country==="all"?" در اروپا":" در "+NAME[st.country]);
-  var base=st.groups.filter(function(g){ return NAME[g.country] && (st.country==="all"||g.country===st.country); });
+  var base=st.groups.filter(function(g){ return NAME[g.country] && (st.country==="all"||g.country===st.country||g.country==="all"); });
   $("grChips").innerHTML=GK.map(function(k){ var n=base.filter(function(g){return gMatch(g,k[0]);}).length; return '<button type="button" class="chip" data-gk="'+k[0]+'" aria-pressed="'+(st.gkind===k[0])+'">'+k[1]+' <span style="opacity:.6">'+faNum(n)+'</span></button>'; }).join("");
   var rows=base.filter(function(g){return gMatch(g,st.gkind);}).sort(function(a,b){return (a.order||99)-(b.order||99)||String(a.name).localeCompare(String(b.name));});
   if(!st.loaded){ el.innerHTML='<div class="empty">در حال بارگذاری…</div>'; return; }
@@ -210,7 +210,7 @@ function renderGroups(){
     var avHtml=(!g.cover&&(g.logo||g.kind!=="زیرگروه"))?'<span class="av'+(g.logo?' logo':'')+'">'+avIn+'</span>':'';
     var kindHtml=(g.kind&&g.kind!=="زیرگروه")?'<span class="kind">'+esc(g.kind)+'</span>':'';
     var descGo=(g.desc?'<p dir="auto">'+esc(g.desc)+'</p>':'')+
-      (url?'<span class="go">'+(g.platform==="instagram"?'اینستاگرام':g.platform==="facebook"?'فیسبوک':'صفحه')+' ←</span>':'<span class="go soon">لینک به‌زودی</span>');
+      (url?'<span class="go">'+(g.platform==="instagram"?'اینستاگرام':g.platform==="facebook"?'فیسبوک':g.platform==="whatsapp"?'واتساپ':g.platform==="telegram"?'تلگرام':'صفحه')+' ←</span>':'<span class="go soon">لینک به‌زودی</span>');
     var titleHtml='<h3 dir="auto">'+esc(g.name)+'</h3>'+(g.nameLatin&&g.nameLatin!==g.name?'<span class="gl">'+esc(g.nameLatin)+'</span>':'')+
       '<span class="gw">'+(FLAG[g.country]||'')+'<span>'+esc(place)+'</span>'+kindHtml+'</span>';
     var inner=cov+'<span class="grow">'+avHtml+'<span class="gb">'+titleHtml+descGo+'</span></span>';
