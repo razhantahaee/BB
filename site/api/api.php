@@ -355,8 +355,8 @@ switch ($op) {
     $round = false;
     if (function_exists('imagecreatefromstring') && ($g = @imagecreatefromstring($png))) {
       $white = function ($x, $y) use ($g) { $c = imagecolorat($g, $x, $y); return (($c >> 16) & 255) >= 235 && (($c >> 8) & 255) >= 235 && ($c & 255) >= 235; };
-      $e = 3; $m = $S - 1 - $e; $mid = intdiv($S, 2);
-      if ($white($e, $e) && $white($m, $e) && $white($e, $m) && $white($m, $m) && !$white($mid, $e) && !$white($mid, $m) && !$white($e, $mid) && !$white($m, $mid)) {
+      $e = 3; $m = $S - 1 - $e; $mid = intdiv($S, 2); $i = 10; $n = $S - 1 - $i;
+      if ($white($e, $e) && $white($m, $e) && $white($e, $m) && $white($m, $m) && !$white($mid, $i) && !$white($mid, $n) && !$white($i, $mid) && !$white($n, $mid)) {
         $o = imagecreatetruecolor($S, $S); imagealphablending($o, false); imagesavealpha($o, true);
         $clear = imagecolorallocatealpha($o, 255, 255, 255, 127); imagefill($o, 0, 0, $clear);
         $rad = $S / 2;
