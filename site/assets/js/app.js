@@ -344,6 +344,7 @@ function renderTint(){
   var el=$("flagTint"); if(!el||tintShown===st.country) return; tintShown=st.country;
   var t=TINT[st.country];
   el.style.opacity="0";
+  el.parentNode.classList.toggle("tinted",!!t);
   if(!t) return;
   setTimeout(function(){ el.style.background=t.join(","); el.style.opacity=".8"; },60);
 }
