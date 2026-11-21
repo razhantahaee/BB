@@ -1,9 +1,9 @@
 #!/bin/bash
-# Manual one-shot: check the websites, clean with Claude, send the candidates to BOTH approval queues (local test site + main site).
+# Manual one-shot, WEBSITES only: check the websites, clean with Claude, send the candidates to BOTH approval queues (local test site + main site).
 # No Apify (no credit used). Nothing goes live: events land in each site's pending queue and Hosein approves them in the admin panel.
-# Usage:  ./sync_all.sh            (normal)
-#         ./sync_all.sh --pull     (git pull first)
-#         ./sync_all.sh --deploy   (also upload site files to Strato at the end)
+# Usage:  ./sync_websites.sh            (normal)
+#         ./sync_websites.sh --pull     (git pull first)
+#         ./sync_websites.sh --deploy   (also upload site files to Strato at the end)
 export PATH="$HOME/.local/bin:$PATH"
 cd ~/BB || exit 1
 PY=~/BB/.venv/bin/python
@@ -36,9 +36,9 @@ TODAY=$(TZ=Europe/Stockholm date +%F)
 [ -f "findings/website-$TODAY.json" ] || { echo "no findings/website-$TODAY.json - stopping"; exit 1; }
 
 say "4) Claude cleaning (a few minutes)"
-timeout -k 10 900 claude -p "$(cat prompts/daily.txt)" --allowedTools "Read,Write,Edit,Bash(git:*),Bash(python3:*)" > /tmp/sync_all_claude.log 2>&1 || echo "claude step failed - see /tmp/sync_all_claude.log"
+timeout -k 10 900 claude -p "$(cat prompts/daily.txt)" --allowedTools "Read,Write,Edit,Bash(git:*),Bash(python3:*)" > /tmp/sync_websites_claude.log 2>&1 || echo "claude step failed - see /tmp/sync_websites_claude.log"
 CHK="findings/website-checked-$TODAY.json"
-[ -f "$CHK" ] || { echo "no $CHK - stopping"; tail -5 /tmp/sync_all_claude.log; exit 1; }
+[ -f "$CHK" ] || { echo "no $CHK - stopping"; tail -5 /tmp/sync_websites_claude.log; exit 1; }
 echo "candidates in $CHK: $($PY -c "import json,sys;print(len(json.load(open('$CHK'))))")"
 
 say "5) send to the LOCAL queue"
