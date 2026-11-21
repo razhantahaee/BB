@@ -1,0 +1,44 @@
+/* SEO landing pages (server-rendered). Same palette as style.css. */
+:root{--paper:#FAF6EE;--paper2:#F2EADB;--card:#FFFDF8;--ink:#17251E;--ink2:#3D4A43;--muted:#6F7A73;--line:#E6DDCC;--green:#1E6B4E;--green-d:#14503A;--green-l:#E3F0E9;--persian:#C9822B;--kurdish:#1E6B4E;--both:#B04A3A;--fa:"Vazirmatn",Tahoma,sans-serif}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--fa);font-size:16px;line-height:1.8}
+a{color:var(--green)}img{max-width:100%;height:auto}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.ltr{direction:ltr;unicode-bidi:isolate}
+.top{background:#17251E;color:#F4EFE4}
+.top .bar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 20px}
+.logo{display:flex;flex-direction:column;line-height:1.15;color:#F4EFE4;text-decoration:none}
+.logo b{font-size:20px;font-weight:800}.logo small{font-family:Figtree,var(--fa);opacity:.7;font-size:12px}
+.app{color:#17251E;background:#7FDBB0;text-decoration:none;font-weight:700;padding:8px 16px;border-radius:999px;font-size:14px}
+.crumbs{font-size:13.5px;color:var(--muted);padding:16px 0 0}.crumbs a{color:var(--muted)}
+.hero{padding:18px 0 8px}
+h1{font-size:clamp(24px,4.6vw,38px);line-height:1.35;margin:.3em 0 .4em;font-weight:800}
+h2{font-size:clamp(20px,3.2vw,26px);margin:1.6em 0 .6em;font-weight:800}
+h3{font-size:17px;margin:.2em 0;font-weight:700;line-height:1.5}
+.lead{font-size:17.5px;color:var(--ink2);margin:.2em 0 .6em}
+.also{font-size:13.5px;color:var(--muted);margin:.2em 0}
+.cnt{color:var(--muted);font-weight:500;font-size:.8em}
+.evs{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px}
+.ev{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:0 1px 2px rgba(23,37,30,.05)}
+.evimg{flex:0 0 96px}.evimg img{width:96px;height:120px;object-fit:cover;border-radius:12px;background:var(--paper2);display:block}
+.evb{min-width:0;flex:1}.evb h3 a{color:var(--ink);text-decoration:none}.evb h3 a:hover{text-decoration:underline}
+.when{margin:0;font-weight:700;color:var(--green-d)}.meta{margin:.1em 0 .3em;color:var(--muted);font-size:14.5px}
+.tag{display:inline-block;font-size:12px;font-weight:700;color:#fff;background:var(--persian);border-radius:999px;padding:0 10px}
+.tag.kurdish{background:var(--kurdish)}.tag.both{background:var(--both)}
+.go{display:inline-block;font-weight:700;font-size:14.5px;text-decoration:none}.go:hover{text-decoration:underline}
+.gcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.gc{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px}
+.gc p{margin:.2em 0;font-size:15px;color:var(--ink2)}.gc .gl{font-size:13px;color:var(--muted)}.gc h3 a{color:var(--ink)}
+.btn{display:inline-block;background:var(--green);color:#fff;text-decoration:none;font-weight:700;border-radius:999px;padding:10px 22px}
+.more{margin-top:14px}
+.rel ul{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px}
+.rel a{display:inline-block;background:var(--green-l);color:var(--green-d);text-decoration:none;border-radius:999px;padding:4px 14px;font-size:14.5px}
+.kv{border-collapse:collapse;width:100%;max-width:560px}.kv th{text-align:right;color:var(--muted);font-weight:500;padding:6px 0 6px 18px;vertical-align:top;white-space:nowrap}.kv td{padding:6px 0;font-weight:600}
+.evpage{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:10px}.poster{width:min(360px,100%);border-radius:16px;object-fit:cover}
+.past{color:var(--both);font-weight:700}
+.foot{background:#17251E;color:#F4EFE4;margin-top:50px;padding:30px 0 40px}
+.foot a{color:#CFE9DB}.foot .fb{margin:0 0 14px}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;font-size:14.5px}
+.lgrid b{display:block;margin-bottom:4px}.lgrid ul{list-style:none;margin:0;padding:0}.lgrid li{margin:2px 0}
+.fc{margin:20px 0 0;font-size:14px}
+@media(max-width:520px){.ev{flex-direction:column}.evimg img{width:100%;height:170px}.evimg{flex:none}.kv th{white-space:normal}}

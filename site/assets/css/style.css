@@ -469,3 +469,11 @@ html,body{max-width:100%;overflow-x:clip}
   .hero h1{font-size:clamp(21px,6.2vw,28px)}
 }
 .flag.more,.flag.more .mt{color:#fff}
+
+/* ======== SEO links in footer ======== */
+.seolinks{margin:0 0 26px;padding-bottom:22px;border-bottom:1px solid rgba(244,239,228,.15)}
+.seolinks .sl-t{margin:0 0 12px;font-weight:700;color:#fff;max-width:none}
+.seolinks .lgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;font-size:14px}
+.seolinks .lcol b{display:block;margin-bottom:4px;font-size:14.5px}
+.seolinks ul{list-style:none;margin:0;padding:0}.seolinks li{margin:2px 0}
+.seolinks a{color:#CFE9DB}

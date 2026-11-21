@@ -1,0 +1,8 @@
+# SEO landing pages: /stockholm/party/, /groups/choir/, /event/<id>/ ... are produced by p.php (read-only).
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+){0,2})/?$ p.php?r=$1 [L,QSA]
+</IfModule>
