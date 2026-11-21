@@ -282,6 +282,44 @@ switch ($op) {
     out(['ok' => true, 'added' => $added, 'published' => $published, 'queued' => $queued, 'skipped' => $skipped]);
   }
 
+  case 'publishpending': {
+    // token only (feed jobs): COMPLETE events waiting in pending/ (title, upcoming date, European country) go live as events/<id>; incomplete ones stay for the admin.
+    if (!tokenOk()) fail(403, 'not allowed');
+    $eu = ['se','de','gb','nl','no','dk','fr','at','ch','be','fi','it','es','tr','gr','cz','ie','pl','pt','hu','lu'];
+    $today = (new DateTime('now', new DateTimeZone('Europe/Stockholm')))->format('Y-m-d');
+    $dry = isset($_GET['dry']);
+    $pdo = pdo();
+    $have = [];
+    foreach ($pdo->query("SELECT path FROM docs WHERE coll IN ('events','archive')")->fetchAll(PDO::FETCH_COLUMN) as $pth) $have[substr($pth, strpos($pth, '/') + 1)] = 1;
+    $ins = $pdo->prepare("INSERT INTO docs (path, coll, data) VALUES (?,?,?)");
+    $upd = $pdo->prepare("UPDATE docs SET data=? WHERE path=?");
+    $published = 0; $left = 0; $already = 0; $list = [];
+    foreach ($pdo->query("SELECT path, data FROM docs WHERE coll='pending'")->fetchAll(PDO::FETCH_ASSOC) as $r) {
+      $e = json_decode($r['data'], true) ?: [];
+      if (($e['status'] ?? '') !== 'pending') continue;
+      $id = substr($r['path'], strpos($r['path'], '/') + 1);
+      $cc = strtolower((string)($e['country'] ?? ''));
+      $date = (string)($e['date'] ?? '');
+      $end = (!empty($e['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$e['endDate'])) ? (string)$e['endDate'] : $date;
+      if (empty($e['title']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $end < $today || !in_array($cc, $eu, true)) { $left++; continue; }
+      if (!isset($have[$id])) {
+        $d = ['title' => (string)$e['title'], 'date' => $date, 'endDate' => (string)($e['endDate'] ?? ''), 'ongoing' => !empty($e['ongoing']),
+              'time' => (string)($e['time'] ?? ''), 'venue' => (string)($e['venue'] ?? ''), 'city' => (string)($e['city'] ?? ''), 'country' => $cc,
+              'price' => ($e['price'] ?? '') !== '' ? (string)$e['price'] : 'See ticket page',
+              'type' => in_array($e['type'] ?? '', ['persian','kurdish','both'], true) ? $e['type'] : 'both',
+              'url' => (string)($e['url'] ?? ''), 'source' => (string)($e['source'] ?? ''), 'organizer' => (string)($e['organizer'] ?? ''), 'addedAt' => $today, 'auto' => true];
+        if (!empty($e['dateLabel'])) $d['dateLabel'] = (string)$e['dateLabel'];
+        $img = (string)($e['image'] ?? '');
+        if (preg_match('#^thumbs/[a-z0-9._-]+\.(jpe?g|png|webp)$#i', $img) || preg_match('#^https://(www\.javantik\.com/cdn/events-image|volek\.events/wp-content/uploads|www\.modernamuseet\.se/app/uploads|www\.kingsplace\.co\.uk/wp-content/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co/storage/v1/ob)#', $img)) $d['image'] = $img;
+        if (!$dry) $ins->execute(['events/' . $id, 'events', json_encode($d, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+        $have[$id] = 1; $published++; $list[] = $date . ' ' . ($d['city'] ?? '') . ' | ' . $d['title'];
+      } else { $already++; }
+      $e['status'] = 'approved'; $e['reviewedAt'] = gmdate('c');
+      if (!$dry) $upd->execute([json_encode($e, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $r['path']]);
+    }
+    out(['ok' => true, 'published' => $published, 'alreadyLive' => $already, 'leftForAdmin' => $left, 'list' => $list, 'dry' => $dry]);
+  }
+
   case 'checkfeed': {
     // عمومی: آیا این صفحه/سایت قبلاً پیگیری می‌شود، قبلاً بررسی شده، یا در انتظار بررسی است؟ فقط وضعیت را برمی‌گرداند، نه فهرست را.
     $platform = (string)($_GET['platform'] ?? $in['platform'] ?? '');

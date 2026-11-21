@@ -45,5 +45,8 @@ echo "events found in posts: $($PY -c "import json;print(len(json.load(open('$CH
 say "4) send to the LOCAL queue"
 with_env "$LOCAL_ENV" timeout -k 5 120 $PY site_sync.py import "$CHK"
 if [ "$HAVE_MAIN" = 1 ]; then say "5) send to the MAIN queue (bezanberim.eu)"; with_env "$MAIN_ENV" timeout -k 5 120 $PY site_sync.py import "$CHK"; fi
+say "publish complete events that were waiting in the queue (no admin click needed)"
+with_env "$LOCAL_ENV" timeout -k 5 120 $PY site_sync.py publish-pending || echo "local publish-pending skipped/failed"
+[ "$HAVE_MAIN" = 1 ] && { with_env "$MAIN_ENV" timeout -k 5 120 $PY site_sync.py publish-pending || echo "main publish-pending skipped/failed"; }
 pkill -u "$USER" -f 'playwright/driver' 2>/dev/null || true
 echo; echo "Done. Complete events were published automatically; incomplete ones wait in the admin queue (local and main)."

@@ -25,6 +25,7 @@ if [ -f prompts/daily.txt ]; then
     >> ~/bb.log 2>&1 || echo "claude step failed" >> ~/bb.log
 fi
 timeout -k 5 120 ~/BB/.venv/bin/python site_sync.py import >> ~/bb.log 2>&1 || echo "site import skipped/failed" >> ~/bb.log   # candidates -> approval queue only
+timeout -k 5 120 ~/BB/.venv/bin/python site_sync.py publish-pending >> ~/bb.log 2>&1 || echo "site publish-pending skipped/failed" >> ~/bb.log   # complete events waiting in the queue go live
 pkill -u bb -f 'playwright/driver' 2>/dev/null || true   # no leftover browsers
 echo "last run: $(date -Is)" > status.txt
 if [ "$BB_NO_PUSH" != "1" ]; then   # BB_NO_PUSH=1 in ~/.config/bb/env: test machine, never commit/push

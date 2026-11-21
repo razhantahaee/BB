@@ -2,6 +2,7 @@
 """Talks to the BezanBerim site API with the secret token.
 Usage:  python site_sync.py cleanup [--dry]   -> archive events whose date is before today (Stockholm); today's events stay until tomorrow
          python site_sync.py export                 -> rewrite sources.txt from the site's approved pages + upcoming events
+         python site_sync.py publish-pending [--dry] -> publish COMPLETE events that wait in pending/ (title, upcoming date, European country); incomplete ones stay for Hosein
          python site_sync.py import [file] [--queue] -> send findings/website-checked-<today>.json. Complete events (title, upcoming date, European country) are PUBLISHED directly; incomplete ones wait in pending/ for Hosein. --queue = send everything to pending/ instead.
 Needs in ~/.config/bb/env:  export BB_API_URL="https://bezanberim.eu/api/api.php"   export BB_TOKEN="..."  (never commit these)"""
 import json, os, re, sys, urllib.request, urllib.error
@@ -70,6 +71,10 @@ if __name__ == "__main__":
         if sec != "events": flush()
         open("sources.txt", "w", encoding="utf-8").write("\n".join(out).rstrip("\n") + "\n")
         print("export: instagram=%d facebook=%d websites=%d events=%d" % (sum(1 for l in out if "instagram.com/" in l and l.startswith("http")), sum(1 for l in out if "facebook.com/" in l and l.startswith("http")), len(add["website"]), len(res["events"])))
+    elif cmd == "publish-pending":
+        res = call("publishpending", "&dry=1" if "--dry" in sys.argv else "")
+        print("publish-pending: published=%s alreadyLive=%s leftForAdmin=%s%s" % (res.get("published"), res.get("alreadyLive"), res.get("leftForAdmin"), " (dry run)" if res.get("dry") else ""))
+        for line in res.get("list", []): print("  -", line)
     elif cmd == "import":
         today = datetime.now(ZoneInfo("Europe/Stockholm")).strftime("%Y-%m-%d")
         args = [a for a in sys.argv[2:] if not a.startswith("--")]
