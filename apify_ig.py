@@ -6,14 +6,14 @@ writes findings/social-instagram-DATE.json (same format as ig_check.py) and prin
 Usage:  python apify_ig.py             -> daily run (tiers + budget)
         python apify_ig.py --n 5       -> only the first 5 pages (test)
         python apify_ig.py --dry       -> show what would be asked, spend nothing
-        python apify_ig.py --first     -> baseline: last 10 posts for pages that have no history yet (done automatically for new pages)
+        python apify_ig.py --first     -> baseline: last 3 posts (APIFY_POSTS_PER_PAGE) for pages that have no history yet (done automatically for new pages)
 
 Needs APIFY_TOKEN in ~/.config/bb/env (never commit it). Cost control (all numbers can be changed with env vars):
 - APIFY_MONTHLY_ITEMS (default 1800 result rows = about 5 USD at the free-plan price) is the monthly budget.
   Every returned row (also empty "no_items" rows) is counted, which is the safe assumption.
 - Daily cap = remaining budget / remaining days of the month (never below 20 rows). It is sent to Apify as maxItems.
 - Tiers: pages with a post in the last 14 days are checked daily; quiet pages (14-45 days) on Monday and Thursday;
-  dead pages (45+ days without a post) on Monday only. New pages are always checked and get a baseline of 10 posts.
+  dead pages (45+ days without a post) on Monday only. New pages are always checked and get a baseline of the last 3 posts (APIFY_POSTS_PER_PAGE, default 3 - every page is read for its latest 3 posts only).
 Exit code 1 on any failure, so run.sh can fall back to ig_check.py."""
 import datetime, json, math, os, re, sys, time, urllib.error, urllib.request
 
@@ -28,6 +28,7 @@ ACTOR = "apify~instagram-scraper"
 TOKEN = os.environ.get("APIFY_TOKEN", "")
 MONTHLY = int(os.environ.get("APIFY_MONTHLY_ITEMS", "1800"))
 EVERY = max(1, int(os.environ.get("APIFY_EVERY_DAYS", "3")))   # each existing page is asked once per EVERY days
+POSTS = max(1, int(os.environ.get("APIFY_POSTS_PER_PAGE", "3")))   # latest posts read per page: new pages (baseline) and normal checks
 BATCH = 100                               # pages per Apify run
 DRY = "--dry" in sys.argv
 N = int(sys.argv[sys.argv.index("--n") + 1]) if "--n" in sys.argv else None
@@ -152,8 +153,8 @@ def main():
                 rows.append((h, label, sum(1 for p in posts if p["page"] == h)))
     try:
         if todo_new:
-            run(todo_new, 10, None, "baseline"); base_spent = spent
-        if todo_daily: run(todo_daily, 3, since, "daily")
+            run(todo_new, POSTS, None, "baseline"); base_spent = spent
+        if todo_daily: run(todo_daily, POSTS, since, "daily")
     except Exception as e:
         st["used"] += spent; save_state(st); log("FAILED: %s" % e); sys.exit(1)
 
