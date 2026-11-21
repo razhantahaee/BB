@@ -1,7 +1,7 @@
 #!/bin/bash
 # Manual one-shot, INSTAGRAM (+ Facebook when its reader exists): Apify -> Claude cleaning -> LOCAL queue + MAIN queue.
 # Uses Apify credit (the script itself only asks each page every 3 days and keeps the monthly budget).
-# Nothing goes live: events land in each site's pending queue and Hosein approves them in the admin panel.
+# Complete events are published automatically on both sites; incomplete ones wait in the admin queue.
 # Usage:  ./sync_social.sh            (normal)
 #         ./sync_social.sh --dry      (show what would be asked from Apify, spend nothing, stop)
 #         ./sync_social.sh --pull     (git pull first)
@@ -46,4 +46,4 @@ say "4) send to the LOCAL queue"
 with_env "$LOCAL_ENV" timeout -k 5 120 $PY site_sync.py import "$CHK"
 if [ "$HAVE_MAIN" = 1 ]; then say "5) send to the MAIN queue (bezanberim.eu)"; with_env "$MAIN_ENV" timeout -k 5 120 $PY site_sync.py import "$CHK"; fi
 pkill -u "$USER" -f 'playwright/driver' 2>/dev/null || true
-echo; echo "Done. Now open the admin panel (local and main) and approve or reject the pending events."
+echo; echo "Done. Complete events were published automatically; incomplete ones wait in the admin queue (local and main)."

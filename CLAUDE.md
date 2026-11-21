@@ -1,7 +1,7 @@
 # BezanBerim feed checker (VPS, user `bb`, folder ~/BB)
 
 Goal: every day at 06:00 (Europe/Stockholm) find NEW Kurdish / Persian / Afghan events in EUROPE and write them to this repo.
-A human (Hosein) approves every event before it goes on the website. Never add events to the website yourself.
+Events found by the feed jobs are PUBLISHED automatically through the API import (site_sync.py import) when they are complete (title, upcoming date, European country); incomplete ones wait in the admin queue (pending/). Pages/feeds that visitors submit through the site still need Hosein's approval. Do not write events into the live database by hand.
 
 ## Files
 - sources.txt  - feeds to check: Instagram pages, Facebook pages (none yet), websites, and "Existing events" (Title | Date | City) for dedup. Do not edit by hand unless asked.
@@ -33,6 +33,6 @@ A human (Hosein) approves every event before it goes on the website. Never add e
 - kurdish.events is behind a Vercel "Security Checkpoint" (HTTP 429), also for headless Firefox. Do not try to bypass it; skip the site until the owners give an API/feed/allowlist.
 - discotehran.se is ONE page with event cards (no per-event URLs). site_discotehran()/parse_discotehran() read only the "Upcoming Parties" block; 0 events is normal when it only shows "Soon" placeholders. Card has no year (next matching date is used) and the ticket link is the home page.
 - Instagram can ask for a login/security check: stop immediately and tell the user.
-- Site import: after the Claude cleaning, `site_sync.py import` sends findings/website-checked-DATE.json to api.php op=import -> pending/<id> (approval queue in the admin panel). Hosein approves/rejects there; approved -> events/<id>. Never write to events/ from code.
+- Site import: after the Claude cleaning, `site_sync.py import` sends findings/website-checked-DATE.json to api.php op=import. Complete events (title, upcoming date, European country) go live directly as events/<id> (marked auto:true; the admin can delete them in the admin table); incomplete ones go to pending/<id> for Hosein. `--queue` sends everything to pending/. Visitor-submitted pages/feeds still need admin approval.
 - cleanup.sh - separate nightly job (cron 03:00 Europe/Stockholm): only runs `site_sync.py cleanup` (archives finished events). Log: ~/cleanup.log. run.sh at 06:00 also runs it as step 0 (harmless duplicate).
 - sources.txt is refreshed automatically by `site_sync.py export` (run.sh step 0b): pages approved in the site's admin panel are added, rejected ones removed, 'Existing events' = upcoming events on the site. Web pages other than the 4 known websites are listed but need a parser in fetch_sites.py.

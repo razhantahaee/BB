@@ -234,16 +234,20 @@ switch ($op) {
   }
 
   case 'import': {
-    // VPS (token) sends candidate events. They only land in pending/<id> = approval queue; NOTHING goes live without the admin.
+    // VPS (token) sends events found by the feed jobs.
+    // publish=1: COMPLETE events (title, upcoming date, European country) go live directly in events/<id>; incomplete ones land in pending/<id> for the admin.
+    // publish absent/0: everything lands in pending/<id> (approval queue).
     if (!tokenOk()) fail(403, 'not allowed');
     $list = $in['events'] ?? [];
     if (!is_array($list) || count($list) > 300) fail(400, 'bad events');
+    $publish = !empty($in['publish']);
+    $eu = ['se','de','gb','nl','no','dk','fr','at','ch','be','fi','it','es','tr','gr','cz','ie','pl','pt','hu','lu'];
     $pdo = pdo();
     $known = [];
     foreach ($pdo->query("SELECT path FROM docs WHERE coll IN ('events','pending','archive')")->fetchAll(PDO::FETCH_COLUMN) as $pth) $known[substr($pth, strpos($pth, '/') + 1)] = 1;
     $ins = $pdo->prepare("INSERT INTO docs (path, coll, data) VALUES (?,?,?)");
     $today = (new DateTime('now', new DateTimeZone('Europe/Stockholm')))->format('Y-m-d');
-    $added = 0; $skipped = 0;
+    $added = 0; $queued = 0; $published = 0; $skipped = 0;
     foreach ($list as $e) {
       if (!is_array($e)) { $skipped++; continue; }
       $id = (string)($e['id'] ?? '');
@@ -254,11 +258,28 @@ switch ($op) {
       }
       if (!empty($e['ongoing'])) $clean['ongoing'] = true;
       if (empty($clean['title'])) { $skipped++; continue; }
-      $clean['status'] = 'pending'; $clean['importedAt'] = $today;
-      $ins->execute(['pending/' . $id, 'pending', json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+      $cc = strtolower($clean['country'] ?? '');
+      $end = (!empty($clean['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $clean['endDate'])) ? $clean['endDate'] : ($clean['date'] ?? '');
+      $complete = $publish && preg_match('/^\d{4}-\d{2}-\d{2}$/', $clean['date'] ?? '') && $end >= $today && in_array($cc, $eu, true);
+      if ($complete) {
+        $d = ['title' => $clean['title'], 'date' => $clean['date'], 'endDate' => $clean['endDate'] ?? '', 'ongoing' => !empty($clean['ongoing']),
+              'time' => $clean['time'] ?? '', 'venue' => $clean['venue'] ?? '', 'city' => $clean['city'] ?? '', 'country' => $cc,
+              'price' => ($clean['price'] ?? '') !== '' ? $clean['price'] : 'See ticket page',
+              'type' => in_array($clean['type'] ?? '', ['persian','kurdish','both'], true) ? $clean['type'] : 'both',
+              'url' => $clean['url'] ?? '', 'source' => $clean['source'] ?? '', 'organizer' => $clean['organizer'] ?? '', 'addedAt' => $today, 'auto' => true];
+        if (!empty($clean['dateLabel'])) $d['dateLabel'] = $clean['dateLabel'];
+        $img = $clean['image'] ?? '';
+        if (preg_match('#^thumbs/[a-z0-9._-]+\.(jpe?g|png|webp)$#i', $img) || preg_match('#^https://(www\.javantik\.com/cdn/events-image|volek\.events/wp-content/uploads|www\.modernamuseet\.se/app/uploads|www\.kingsplace\.co\.uk/wp-content/uploads|rrorwfctzuxjwjbtuhvt\.supabase\.co/storage/v1/ob)#', $img)) $d['image'] = $img;
+        $ins->execute(['events/' . $id, 'events', json_encode($d, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+        $published++;
+      } else {
+        $clean['status'] = 'pending'; $clean['importedAt'] = $today;
+        $ins->execute(['pending/' . $id, 'pending', json_encode($clean, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)]);
+        $queued++;
+      }
       $known[$id] = 1; $added++;
     }
-    out(['ok' => true, 'added' => $added, 'skipped' => $skipped]);
+    out(['ok' => true, 'added' => $added, 'published' => $published, 'queued' => $queued, 'skipped' => $skipped]);
   }
 
   case 'checkfeed': {

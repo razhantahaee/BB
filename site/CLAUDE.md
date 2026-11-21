@@ -10,7 +10,7 @@ Europe-only site of Kurdish, Persian and Afghan events. Public page is Persian (
 
 ## Rules
 - Keep RTL and Persian text. Mobile first, check narrow screens.
-- Only the admin approves events; never add events to the live site from code.
+- Events from the automatic feed jobs are published by api.php op=import (token, complete events only; incomplete ones wait in pending/). Visitor-submitted pages/feeds need admin approval. Do not write events into the live database by hand.
 - Past events are hidden by date (isUpcoming in app.js) and archived daily by api.php op=cleanup (token or admin).
 - Test site: http://192.168.0.104/bezanberim/ (Apache on this VM, database bb_test). Real site: bezanberim.eu on Strato - do not touch it from here.
 - Never commit secrets (config.php, tokens). Do not use sudo unless asked.

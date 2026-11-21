@@ -1,6 +1,6 @@
 #!/bin/bash
-# Manual one-shot, WEBSITES only: check the websites, clean with Claude, send the candidates to BOTH approval queues (local test site + main site).
-# No Apify (no credit used). Nothing goes live: events land in each site's pending queue and Hosein approves them in the admin panel.
+# Manual one-shot, WEBSITES only: check the websites, clean with Claude, send the events to BOTH sites (local test site + main site).
+# No Apify (no credit used). Complete events are published automatically on both sites; incomplete ones wait in the admin queue.
 # Usage:  ./sync_websites.sh            (normal)
 #         ./sync_websites.sh --pull     (git pull first)
 #         ./sync_websites.sh --deploy   (also upload site files to Strato at the end)
@@ -47,4 +47,4 @@ if [ "$HAVE_MAIN" = 1 ]; then say "6) send to the MAIN queue (bezanberim.eu)"; w
 
 if [ "$DEPLOY" = 1 ]; then say "7) upload site files to Strato"; ./deploy_strato.sh; fi
 pkill -u "$USER" -f 'playwright/driver' 2>/dev/null || true
-echo; echo "Done. Now open the admin panel (local and main) and approve or reject the pending events."
+echo; echo "Done. Complete events were published automatically; incomplete ones wait in the admin queue (local and main)."

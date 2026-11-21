@@ -1,5 +1,5 @@
 #!/bin/bash
-# Manual one-shot, EVERYTHING: websites job, then Instagram job (Apify credit!). Both send to the LOCAL and MAIN approval queues.
+# Manual one-shot, EVERYTHING: websites job, then Instagram job (Apify credit!). Both publish complete events on the LOCAL and MAIN sites (incomplete ones wait in the admin queue).
 # Usage:  ./sync_all.sh                 websites + Instagram
 #         ./sync_all.sh --pull          git pull first (done once, before the websites job)
 #         ./sync_all.sh --deploy        also upload the site files to Strato (after the websites job)

@@ -641,8 +641,9 @@ function admRows(){
       act:'<button class="btn small ok" data-act="approve" data-k="'+esc(it.key)+'">تأیید</button><button class="btn small ghost" data-act="approve-group" data-k="'+esc(it.key)+'">تأیید + گروه‌ها</button><button class="btn small no" data-act="reject" data-k="'+esc(it.key)+'">رد</button>'}); }); });
   st.pending.filter(function(e){return e.status==="pending";}).forEach(function(e){
     var ok=/^\d{4}-\d{2}-\d{2}$/.test(e.date||"")&&e.title&&/^[a-z]{2}$/i.test(e.country||"");
+    var why=[]; if(!/^\d{4}-\d{2}-\d{2}$/.test(e.date||"")) why.push("تاریخ نامشخص"); if(!/^[a-z]{2}$/i.test(e.country||"")) why.push("کشور نامشخص"); if(!e.title) why.push("بدون عنوان");
     rows.push({k:"p:"+e.id,kind:"ایونت",plat:platformOf(e.url,e.source),name:e.title,sub:[e.date,e.city].filter(Boolean).join(" · "),country:String(e.country||"all").toLowerCase(),city:e.city||"",url:e.url,status:"pending",
-      act:'<button class="btn small ok" data-pact="approve" data-id="'+esc(e.id)+'"'+(ok?'':' disabled')+'>تأیید</button><button class="btn small no" data-pact="reject" data-id="'+esc(e.id)+'">رد</button>'}); });
+      act:'<button class="btn small ok" data-pact="approve" data-id="'+esc(e.id)+'"'+(ok?'':' disabled')+'>تأیید</button><button class="btn small no" data-pact="reject" data-id="'+esc(e.id)+'">رد</button>'+(ok?'':'<small class="why">تأیید ممکن نیست: '+why.join("، ")+'. فقط رد کردن.</small>')}); });
   st.sources.forEach(function(s){
     if(s.status==="approved") rows.push({k:"a:"+s.id,kind:s.kind||"صفحه",plat:platformOf(s.url,s.platform),name:s.note||s.handle,sub:s.handle,country:s.country||"all",city:s.city||"",url:s.url,status:"active",
       act:(inGroups(s)?'':'<button class="btn small ghost" data-addgroup="'+esc(s.id)+'">به گروه‌ها</button>')+'<button class="btn small no" data-stop="'+esc(s.id)+'">حذف / توقف</button>'});

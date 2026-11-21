@@ -2,7 +2,7 @@
 """Talks to the BezanBerim site API with the secret token.
 Usage:  python site_sync.py cleanup [--dry]   -> archive events whose date is before today (Stockholm); today's events stay until tomorrow
          python site_sync.py export                 -> rewrite sources.txt from the site's approved pages + upcoming events
-         python site_sync.py import [file]     -> send findings/website-checked-<today>.json to the site's approval queue (pending/). Nothing goes live without Hosein.
+         python site_sync.py import [file] [--queue] -> send findings/website-checked-<today>.json. Complete events (title, upcoming date, European country) are PUBLISHED directly; incomplete ones wait in pending/ for Hosein. --queue = send everything to pending/ instead.
 Needs in ~/.config/bb/env:  export BB_API_URL="https://bezanberim.eu/api/api.php"   export BB_TOKEN="..."  (never commit these)"""
 import json, os, re, sys, urllib.request, urllib.error
 from datetime import datetime
@@ -72,7 +72,8 @@ if __name__ == "__main__":
         print("export: instagram=%d facebook=%d websites=%d events=%d" % (sum(1 for l in out if "instagram.com/" in l and l.startswith("http")), sum(1 for l in out if "facebook.com/" in l and l.startswith("http")), len(add["website"]), len(res["events"])))
     elif cmd == "import":
         today = datetime.now(ZoneInfo("Europe/Stockholm")).strftime("%Y-%m-%d")
-        path = sys.argv[2] if len(sys.argv) > 2 else "findings/website-checked-%s.json" % today
+        args = [a for a in sys.argv[2:] if not a.startswith("--")]
+        path = args[0] if args else "findings/website-checked-%s.json" % today
         try:
             items = json.load(open(path, encoding="utf-8"))
         except Exception as e:
@@ -95,7 +96,8 @@ if __name__ == "__main__":
                         "endDate": u("endDate"), "ongoing": bool(e.get("ongoing")), "dateLabel": u("dateLabel")})
         if not out:
             print("import: nothing to send"); sys.exit(0)
-        res = call("import", "", {"events": out})
-        print("import: sent=%d added=%s skipped(already known)=%s" % (len(out), res.get("added"), res.get("skipped")))
+        publish = "--queue" not in sys.argv
+        res = call("import", "", {"events": out, "publish": publish})
+        print("import: sent=%d published=%s waiting-for-admin=%s skipped(already known)=%s" % (len(out), res.get("published", 0), res.get("queued", res.get("added", 0)), res.get("skipped")))
     else:
         sys.exit(__doc__)
