@@ -7,10 +7,11 @@ For every candidate:
 2. Skip it if it is outside Europe or the date is in the past.
 3. Fill missing fields from page_text or by opening the url: title, date (YYYY-MM-DD), time, city, country (2-letter code), venue, price (or "See ticket page"), type (kurdish / persian / both), image (poster URL), ticket_url (the site that sells the ticket, not an aggregator).
 4. If a field is unknown write "unknown". Never invent one.
+POSTERS: some posts have "poster_files" (pictures saved on this machine, e.g. findings/posters/ABC-1.jpg) because the caption has no date. For those posts Read each picture file and take the event details from the poster (title/artist, date, time, venue, city, country, price, ticket link or website if printed). Persian/Arabic digits are normal: convert them to 0-9. Read only the posters of posts that have "poster_files"; ignore the others. If a poster shows a day and month but no year, use the next upcoming occurrence only when a printed weekday matches that date; otherwise write date "unknown". If you cannot read a field clearly, write "unknown" - never guess. For every event that came from a poster add the key "from_poster": true (and mention in notes what was unclear). A poster that is not an event (ad, quote, birthday, news) is ignored.
 Write the result as one JSON list (Instagram only; use the post_url as source_url and the event's ticket link if the caption has one) to findings/social-checked-<today>.json, one object per event with exactly these keys:
-title, date, time, city, country, venue, price, type, image, ticket_url, source_url, notes
+title, date, time, city, country, venue, price, type, image, ticket_url, source_url, notes, from_poster (true only for events read from a poster, otherwise false)
 Put doubts (conflicting dates, unclear venue) in notes.
 Do not modify sources.txt or any other file. Do not run git.
 
-Work only from the data in the files. Do NOT open web pages and do not run commands; if a field is missing write "unknown".
+Work only from the data in the files (and the poster pictures listed in them). Do NOT open web pages and do not run commands; if a field is missing write "unknown".
 Only handle posts that are not already in "Existing events". Be quick: this step must finish in a few minutes.

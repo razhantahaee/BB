@@ -6,3 +6,4 @@ __pycache__/
 site/api/config.php
 instagram_seen.json.tmp
 site/uploads/
+findings/posters/

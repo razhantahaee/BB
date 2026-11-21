@@ -3,7 +3,7 @@
 Usage:  python site_sync.py cleanup [--dry]   -> archive events whose date is before today (Stockholm); today's events stay until tomorrow
          python site_sync.py export                 -> rewrite sources.txt from the site's approved pages + upcoming events
          python site_sync.py publish-pending [--dry] -> publish COMPLETE events that wait in pending/ (title, upcoming date, European country); incomplete ones stay for Hosein
-         python site_sync.py import [file] [--queue] -> send findings/website-checked-<today>.json. Complete events (title, upcoming date, European country) are PUBLISHED directly; incomplete ones wait in pending/ for Hosein. --queue = send everything to pending/ instead.
+         python site_sync.py import [file] [--queue] -> send findings/website-checked-<today>.json. Complete events (title, upcoming date, European country) are PUBLISHED directly; incomplete ones (and events read from a poster picture) wait in pending/ for Hosein. --queue = send everything to pending/ instead.
 Needs in ~/.config/bb/env:  export BB_API_URL="https://bezanberim.eu/api/api.php"   export BB_TOKEN="..."  (never commit these)"""
 import json, os, re, sys, urllib.request, urllib.error
 from datetime import datetime
@@ -99,6 +99,9 @@ if __name__ == "__main__":
                         "endDate": u("endDate") if re.fullmatch(r"\d{4}-\d{2}-\d{2}", u("endDate")) else "", "ongoing": "1" if e.get("ongoing") else "", "venue": u("venue"), "price": u("price"), "type": u("type"), "image": u("image"), "url": link or "",
                         "source": str(e.get("source_url") or ""), "organizer": u("organizer"), "notes": u("notes"),
                         "endDate": u("endDate"), "ongoing": bool(e.get("ongoing")), "dateLabel": u("dateLabel")})
+            if e.get("from_poster") is True:   # read from a picture: always waits for the admin (OCR can be wrong)
+                out[-1]["poster"] = "1"
+                out[-1]["notes"] = ("از روی پوستر خوانده شد؛ با پست اصلی مقایسه کنید. " + out[-1]["notes"]).strip()
         if not out:
             print("import: nothing to send"); sys.exit(0)
         publish = "--queue" not in sys.argv

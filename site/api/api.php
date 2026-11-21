@@ -253,14 +253,14 @@ switch ($op) {
       $id = (string)($e['id'] ?? '');
       if (!preg_match('/^[a-z0-9\-]{3,120}$/', $id) || isset($known[$id])) { $skipped++; continue; }
       $clean = [];
-      foreach (['title','date','endDate','ongoing','time','city','country','venue','price','type','image','url','source','organizer','notes','postedAt','endDate','dateLabel'] as $k) {
+      foreach (['title','date','endDate','ongoing','time','city','country','venue','price','type','image','url','source','organizer','notes','postedAt','endDate','dateLabel','poster'] as $k) {
         if (isset($e[$k]) && is_scalar($e[$k])) $clean[$k] = mb_substr((string)$e[$k], 0, 600);
       }
       if (!empty($e['ongoing'])) $clean['ongoing'] = true;
       if (empty($clean['title'])) { $skipped++; continue; }
       $cc = strtolower($clean['country'] ?? '');
       $end = (!empty($clean['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $clean['endDate'])) ? $clean['endDate'] : ($clean['date'] ?? '');
-      $complete = $publish && preg_match('/^\d{4}-\d{2}-\d{2}$/', $clean['date'] ?? '') && $end >= $today && in_array($cc, $eu, true);
+      $complete = $publish && empty($clean['poster']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $clean['date'] ?? '') && $end >= $today && in_array($cc, $eu, true);
       if ($complete) {
         $d = ['title' => $clean['title'], 'date' => $clean['date'], 'endDate' => $clean['endDate'] ?? '', 'ongoing' => !empty($clean['ongoing']),
               'time' => $clean['time'] ?? '', 'venue' => $clean['venue'] ?? '', 'city' => $clean['city'] ?? '', 'country' => $cc,
@@ -301,7 +301,7 @@ switch ($op) {
       $cc = strtolower((string)($e['country'] ?? ''));
       $date = (string)($e['date'] ?? '');
       $end = (!empty($e['endDate']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', (string)$e['endDate'])) ? (string)$e['endDate'] : $date;
-      if (empty($e['title']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $end < $today || !in_array($cc, $eu, true)) { $left++; continue; }
+      if (!empty($e['poster']) || empty($e['title']) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || $end < $today || !in_array($cc, $eu, true)) { $left++; continue; }
       if (!isset($have[$id])) {
         $d = ['title' => (string)$e['title'], 'date' => $date, 'endDate' => (string)($e['endDate'] ?? ''), 'ongoing' => !empty($e['ongoing']),
               'time' => (string)($e['time'] ?? ''), 'venue' => (string)($e['venue'] ?? ''), 'city' => (string)($e['city'] ?? ''), 'country' => $cc,

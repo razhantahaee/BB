@@ -14,6 +14,9 @@ Needs APIFY_TOKEN in ~/.config/bb/env (never commit it). Cost control (all numbe
 - Daily cap = remaining budget / remaining days of the month (never below 20 rows). It is sent to Apify as maxItems.
 - Tiers: pages with a post in the last 14 days are checked daily; quiet pages (14-45 days) on Monday and Thursday;
   dead pages (45+ days without a post) on Monday only. New pages are always checked and get a baseline of the last 3 posts (APIFY_POSTS_PER_PAGE, default 3 - every page is read for its latest 3 posts only).
+- Poster-only posts: when a NEW post has no usable caption (no digit/date in the text) its image(s) are downloaded at once
+  (Instagram image links expire within hours) to findings/posters/<shortcode>-<n>.jpg (max 3 slides, APIFY_POSTER_MAX posts per run,
+  default 30) and listed as "poster_files" in the findings, so the Claude cleaning step can read the picture. No extra Apify cost.
 Exit code 1 on any failure, so run.sh can fall back to ig_check.py."""
 import datetime, json, math, os, re, sys, time, urllib.error, urllib.request
 
@@ -59,6 +62,46 @@ def handle(url): return url.rstrip("/").split("/")[-1].lower()
 def code(link):
     m = re.search(r"/(?:p|reel)/([A-Za-z0-9_-]+)", link or "")
     return m.group(1) if m else (link or "")
+
+POSTER_DIR = "findings/posters"
+POSTER_MAX = int(os.environ.get("APIFY_POSTER_MAX", "30"))   # max posters downloaded per run
+_DIGITS = re.compile(r"[0-9\u06f0-\u06f9\u0660-\u0669]")
+
+def weak_caption(text):
+    """True when the caption cannot hold a date (empty, very short, or no digit at all) -> the poster must be read."""
+    t = (text or "").strip()
+    return len(t) < 25 or not _DIGITS.search(t)
+
+def poster_urls(it):
+    """Image links of a post: cover first, then other slides (carousel). Max 3, no duplicates."""
+    urls = [it.get("displayUrl") or ""]
+    for x in (it.get("images") or []):
+        urls.append(x if isinstance(x, str) else (x.get("displayUrl") or x.get("url") or "") if isinstance(x, dict) else "")
+    for ch in (it.get("childPosts") or []):
+        if isinstance(ch, dict): urls.append(ch.get("displayUrl") or "")
+    out = []
+    for u in urls:
+        if u.startswith("https://") and u not in out: out.append(u)
+    return out[:3]
+
+def download_posters(shortcode, urls):
+    """Save the pictures now (links expire). Returns the list of saved file paths (may be empty)."""
+    os.makedirs(POSTER_DIR, exist_ok=True)
+    saved = []
+    for n, u in enumerate(urls, 1):
+        path = "%s/%s-%d.jpg" % (POSTER_DIR, re.sub(r"[^A-Za-z0-9_-]", "", shortcode) or "post", n)
+        try:
+            req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) bb-poster/1.0"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                ctype = r.headers.get("Content-Type", "")
+                data = r.read(8_000_001)
+            if not ctype.startswith("image/") or len(data) < 2000 or len(data) > 8_000_000:
+                log("  poster skipped (%s, %d bytes): %s" % (ctype, len(data), shortcode)); continue
+            with open(path, "wb") as f: f.write(data)
+            saved.append(path)
+        except Exception as e:
+            log("  poster download failed for %s: %s" % (shortcode, e))
+    return saved
 
 def tier_due(info):
     """info = per-page memory or None. Returns True if the page should be asked today."""
@@ -114,6 +157,7 @@ def main():
     seen_codes = {c for info in st["pages"].values() for c in info.get("seen", [])}
 
     posts, rows, spent, base_spent = [], [], 0, 0
+    poster_done = []
     def run(urls, limit, since_days, label):
         nonlocal spent
         for i in range(0, len(urls), BATCH):
@@ -141,10 +185,14 @@ def main():
                 info["seen"] = (info["seen"] + [c])[-60:]
                 if ts and (not info.get("last_post") or ts > info["last_post"]): info["last_post"] = ts
                 if label == "baseline" and ts and (TODAY - datetime.date.fromisoformat(ts)).days > 30: continue
-                posts.append({"page": owner_input, "post_url": it.get("url"), "posted": ts, "caption": (it.get("caption") or "")[:2500],
-                              "image": it.get("displayUrl", ""), "source": "instagram", "recent": True,
-                              "owner": it.get("ownerUsername", ""), "location": it.get("locationName", ""),
-                              "pinned": bool(it.get("isPinned"))})
+                post = {"page": owner_input, "post_url": it.get("url"), "posted": ts, "caption": (it.get("caption") or "")[:2500],
+                        "image": it.get("displayUrl", ""), "source": "instagram", "recent": True,
+                        "owner": it.get("ownerUsername", ""), "location": it.get("locationName", ""),
+                        "pinned": bool(it.get("isPinned")), "media_type": it.get("type", "")}
+                if weak_caption(post["caption"]) and len(poster_done) < POSTER_MAX and (not ts or (TODAY - datetime.date.fromisoformat(ts)).days <= 30):
+                    files = download_posters(c, poster_urls(it))
+                    if files: post["poster_files"] = files; poster_done.append(c)
+                posts.append(post)
             for u in chunk:
                 h = handle(u)
                 if h not in answered:        # no row at all (cap reached): leave the page untouched, it stays "new" for tomorrow
@@ -167,7 +215,7 @@ def main():
         except Exception: old = []
     keep = {code(p["post_url"]): p for p in old}; keep.update({code(p["post_url"]): p for p in posts})   # same post = same shortcode, whichever reader found it
     json.dump(list(keep.values()), open(name, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    log("done: %d new posts, %d rows billed (assumed), month %d/%d" % (len(posts), spent, st["used"], MONTHLY))
+    log("done: %d new posts (%d posters saved for reading), %d rows billed (assumed), month %d/%d" % (len(posts), len(poster_done), spent, st["used"], MONTHLY))
     print("| Page | Tier | New posts |\n|---|---|---|")
     for h, label, n in rows: print("| %s | %s | %d |" % (h, label, n))
 
